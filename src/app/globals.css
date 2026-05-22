@@ -3154,6 +3154,7 @@ select {
   .site-header {
     height: auto;
     padding: 10px 0 8px;
+    overflow: visible;
   }
 
   .site-header .container {
@@ -3172,7 +3173,7 @@ select {
   .main-nav {
     order: 3;
     flex: 1 0 100%;
-    overflow-x: auto;
+    overflow: visible;
     padding-top: 2px;
     scrollbar-width: none;
     white-space: nowrap;
@@ -3190,6 +3191,11 @@ select {
     margin-right: 22px;
   }
 
+  .main-nav .nav-dropdown-trigger {
+    min-width: 54px;
+    padding: 0 2px;
+  }
+
   .main-nav a.active::after {
     bottom: -7px;
   }
@@ -3200,10 +3206,17 @@ select {
   }
 
   .category-dropdown {
+    position: absolute;
     left: 0;
-    top: calc(100% + 10px);
+    top: calc(100% + 8px);
+    z-index: 999;
     width: min(300px, calc(100vw - 28px));
     padding: 16px;
+  }
+
+  .category-dropdown::before {
+    top: -10px;
+    height: 10px;
   }
 
   .search-box {
