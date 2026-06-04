@@ -1,5 +1,39 @@
 import { Truyen } from "@/types/truyen";
 
+const noiDungTheoTheLoai: Record<string, string> = {
+  "Tiên Hiệp":
+    "<p>Gió núi thổi qua thôn nhỏ, mang theo mùi cỏ non và tiếng chuông xa vắng. Nhân vật chính đứng trước cánh cổng đá cũ, trong lòng lần đầu cảm nhận được con đường trước mắt sẽ không còn bình yên.</p><p>Một mảnh ngọc cổ trong tay khẽ sáng lên, để lộ những dòng chữ mà người thường không thể nhìn thấy. Từ khoảnh khắc ấy, số mệnh bắt đầu rẽ sang một hướng khác.</p>",
+  "Tu Chân":
+    "<p>Con đường lên núi quanh co, mây trắng phủ kín lối đi. Người thiếu niên bước từng bước chậm rãi, lòng đầy thấp thỏm nhưng ánh mắt vẫn kiên định.</p><p>Trước cổng môn phái, cậu hiểu rằng từ hôm nay mọi thứ phải dựa vào chính mình. Không ai chống lưng, không ai trải đường, chỉ có sự nhẫn nại và ý chí.</p>",
+  "Huyền Huyễn":
+    "<p>Chuông cổ vang lên trong phế tích, đánh thức bụi thời gian phủ kín vạn năm. Người trở về nhìn thế gian như nhìn một giấc mộng dài vừa tan.</p><p>Những truyền thuyết cũ không hề biến mất, chúng chỉ lặng lẽ chờ một người đủ mạnh để mở lại cánh cửa đã bị phong ấn.</p>",
+  "Ngôn Tình":
+    "<p>Mưa phùn rơi trên con phố lát đá. Cô đứng dưới mái hiên quán sách cũ, nhìn người vừa bước qua màn mưa mà ngỡ như thời gian quay ngược.</p><p>Bảy năm xa cách, một ánh mắt vẫn đủ khiến trái tim lỡ nhịp.</p>",
+  "Kỳ Huyễn":
+    "<p>Thành phố thức dậy dưới lớp sương dày. Những ngọn đèn khí cháy lặng lẽ, còn tiếng bánh xe ngựa vang lên đều đều trên mặt đường ẩm ướt.</p><p>Không ai biết trong căn phòng tầng ba, một nghi thức cổ vừa được hoàn thành, kéo theo những bí mật không nên bị đánh thức.</p>",
+  "Xuyên Không":
+    "<p>Khi mở mắt, trần nhà gỗ mục nát và mùi thuốc đắng xộc vào mũi. Ký ức lạ lẫm tràn vào đầu khiến cậu mất rất lâu mới hiểu bản thân đã không còn ở thế giới cũ.</p><p>Một thân phận thấp kém, một gia tộc lạnh nhạt, và một vùng trời hoàn toàn xa lạ đang chờ cậu bước vào.</p>",
+  "Cổ Đại":
+    "<p>Trong hoàng cung tĩnh lặng, thiếu niên nhìn long trụ trước điện mà bàn tay siết chặt. Thứ thuộc về hắn đã bị cướp đi từ khi còn chưa kịp hiểu vận mệnh là gì.</p><p>Nhưng mất đi khí vận không có nghĩa là mất đi ý chí. Một ngày nào đó, hắn sẽ tự tay lấy lại tất cả.</p>",
+  "Kiếm Hiệp":
+    "<p>Trên đỉnh núi tuyết, một thiếu niên đứng lặng suốt ba canh giờ chỉ để chờ khoảnh khắc gió đổi hướng. Thanh kiếm gỗ trong tay đã cũ, nhưng ánh mắt lại sắc như thép.</p><p>Một nhát kiếm chém ra, tuyết rơi hai bên như bị tách làm đôi.</p>",
+};
+
+const taoChuong = (theLoai: string, tenChuong = "Khởi đầu") => [
+  {
+    id: "chuong-1",
+    ten: `Chương 1: ${tenChuong}`,
+    soChuong: 1,
+    noiDung: noiDungTheoTheLoai[theLoai],
+  },
+  {
+    id: "chuong-2",
+    ten: "Chương 2: Biến cố đầu tiên",
+    soChuong: 2,
+    noiDung: noiDungTheoTheLoai[theLoai],
+  },
+];
+
 export const danhSachTruyen: Truyen[] = [
   {
     id: "vo-thuong-than-de",
@@ -7,25 +41,10 @@ export const danhSachTruyen: Truyen[] = [
     tacGia: "Oa Ngưu",
     theLoai: "Tiên Hiệp",
     trangThai: "Đang ra",
-    anhBia: "https://picsum.photos/seed/vo-thuong-than-de/400/600",
+    anhBia: "/img/1.png",
     moTa: "Một thiếu niên bước vào con đường tu luyện, vượt qua vô số thử thách để chạm tới cảnh giới tối cao.",
     luotXem: 245000,
-    chuongs: [
-      {
-        id: "chuong-1",
-        ten: "Chương 1: Khởi đầu",
-        soChuong: 1,
-        noiDung:
-          "<p>Gió núi thổi qua thôn nhỏ, mang theo mùi cỏ non và tiếng chuông xa vắng. Mục Vân đứng trước cổng đá cũ, trong lòng lần đầu cảm nhận được con đường trước mắt sẽ không còn bình yên.</p><p>Một mảnh ngọc cổ trong tay hắn khẽ sáng lên, để lộ những dòng chữ mà người thường không thể nhìn thấy. Từ khoảnh khắc ấy, số mệnh của hắn bắt đầu rẽ sang một hướng khác.</p>",
-      },
-      {
-        id: "chuong-2",
-        ten: "Chương 2: Linh mạch thức tỉnh",
-        soChuong: 2,
-        noiDung:
-          "<p>Đêm xuống, linh khí trong rừng tụ lại như sương bạc. Mục Vân ngồi xếp bằng bên bờ suối, từng tia sáng mảnh như tơ len vào kinh mạch.</p><p>Đau đớn kéo đến như sóng lớn, nhưng hắn không lùi bước. Khi bình minh vừa hé, linh mạch đầu tiên trong cơ thể hắn cuối cùng cũng thức tỉnh.</p>",
-      },
-    ],
+    chuongs: taoChuong("Tiên Hiệp"),
   },
   {
     id: "pham-nhan-tu-tien",
@@ -33,25 +52,10 @@ export const danhSachTruyen: Truyen[] = [
     tacGia: "Vong Ngữ",
     theLoai: "Tu Chân",
     trangThai: "Hoàn thành",
-    anhBia: "https://picsum.photos/seed/pham-nhan-tu-tien/400/600",
+    anhBia: "/img/5.png",
     moTa: "Một người bình thường bước vào tiên đạo, dùng nghị lực và trí tuệ để vượt qua vô số kiếp nạn.",
     luotXem: 150200,
-    chuongs: [
-      {
-        id: "chuong-1",
-        ten: "Chương 1: Thiếu niên nơi sơn thôn",
-        soChuong: 1,
-        noiDung:
-          "<p>Hàn Lập sinh ra ở một sơn thôn nghèo, nơi mỗi ngày đều trôi qua cùng tiếng rìu bổ củi và khói bếp chiều. Cậu không có thiên phú khiến người khác kinh ngạc, chỉ có đôi mắt lặng lẽ quan sát mọi thứ.</p><p>Một ngày nọ, đoàn người của môn phái đi ngang qua thôn. Cánh cửa dẫn tới tiên đạo mở ra trong thoáng chốc, đủ để thay đổi cả đời một thiếu niên bình thường.</p>",
-      },
-      {
-        id: "chuong-2",
-        ten: "Chương 2: Nhập môn",
-        soChuong: 2,
-        noiDung:
-          "<p>Con đường lên núi quanh co, mây trắng phủ kín lối đi. Hàn Lập bước từng bước chậm rãi, lòng đầy thấp thỏm nhưng ánh mắt vẫn kiên định.</p><p>Trước cổng môn phái, cậu hiểu rằng từ hôm nay mọi thứ phải dựa vào chính mình. Không ai chống lưng, không ai trải đường, chỉ có sự nhẫn nại và ý chí.</p>",
-      },
-    ],
+    chuongs: taoChuong("Tu Chân", "Thiếu niên nơi sơn thôn"),
   },
   {
     id: "de-ba",
@@ -59,25 +63,10 @@ export const danhSachTruyen: Truyen[] = [
     tacGia: "Yếm Bút Tiêu Sinh",
     theLoai: "Huyền Huyễn",
     trangThai: "Đang ra",
-    anhBia: "https://picsum.photos/seed/de-ba/400/600",
+    anhBia: "/img/6.png",
     moTa: "Một tồn tại cổ xưa đi qua vô số thời đại, chứng kiến sự hưng vong của các đế thống.",
     luotXem: 612000,
-    chuongs: [
-      {
-        id: "chuong-1",
-        ten: "Chương 1: Người trở về",
-        soChuong: 1,
-        noiDung:
-          "<p>Chuông cổ vang lên trong phế tích, đánh thức bụi thời gian phủ kín vạn năm. Lý Thất Dạ mở mắt, nhìn thế gian như nhìn một giấc mộng dài vừa tan.</p><p>Những người từng xưng hùng đã hóa thành truyền thuyết, nhưng hắn vẫn còn đó, mang theo ký ức của từng thời đại.</p>",
-      },
-      {
-        id: "chuong-2",
-        ten: "Chương 2: Cổ viện",
-        soChuong: 2,
-        noiDung:
-          "<p>Cổ viện nằm sâu trong núi, mái ngói phủ rêu xanh. Đệ tử nơi này không biết vị khách áo xám trước cổng từng khiến bao đế quân cúi đầu.</p><p>Lý Thất Dạ mỉm cười, bước qua ngưỡng cửa cũ, bắt đầu một ván cờ mới.</p>",
-      },
-    ],
+    chuongs: taoChuong("Huyền Huyễn", "Người trở về"),
   },
   {
     id: "co-su-thanh-tay",
@@ -85,18 +74,10 @@ export const danhSachTruyen: Truyen[] = [
     tacGia: "Mộc Hương",
     theLoai: "Ngôn Tình",
     trangThai: "Đang ra",
-    anhBia: "https://picsum.photos/seed/co-su-thanh-tay/400/600",
+    anhBia: "/img/3.png",
     moTa: "Một câu chuyện tình dịu dàng giữa thành phố cũ, nơi ký ức và hiện tại giao nhau.",
     luotXem: 8500,
-    chuongs: [
-      {
-        id: "chuong-1",
-        ten: "Chương 1: Gặp lại ở thành tây",
-        soChuong: 1,
-        noiDung:
-          "<p>Mưa phùn rơi trên con phố lát đá. Lâm An đứng dưới mái hiên quán sách cũ, nhìn người vừa bước qua màn mưa mà ngỡ như thời gian quay ngược.</p><p>Bảy năm xa cách, một ánh mắt vẫn đủ khiến trái tim cô lỡ nhịp.</p>",
-      },
-    ],
+    chuongs: taoChuong("Ngôn Tình", "Gặp lại ở thành tây"),
   },
   {
     id: "quy-bi-chi-chu",
@@ -104,18 +85,10 @@ export const danhSachTruyen: Truyen[] = [
     tacGia: "Ái Tiềm Thủy",
     theLoai: "Kỳ Huyễn",
     trangThai: "Hoàn thành",
-    anhBia: "https://picsum.photos/seed/quy-bi-chi-chu/400/600",
+    anhBia: "/img/8.png",
     moTa: "Trong thế giới đầy sương mù và nghi thức bí ẩn, một người trẻ lần theo dấu vết của các thế lực siêu nhiên.",
     luotXem: 122000,
-    chuongs: [
-      {
-        id: "chuong-1",
-        ten: "Chương 1: Màn sương",
-        soChuong: 1,
-        noiDung:
-          "<p>Thành phố thức dậy dưới lớp sương dày. Những ngọn đèn khí cháy lặng lẽ, còn tiếng bánh xe ngựa vang lên đều đều trên mặt đường ẩm ướt.</p><p>Không ai biết trong căn phòng tầng ba, một nghi thức cổ vừa được hoàn thành, kéo theo những bí mật không nên bị đánh thức.</p>",
-      },
-    ],
+    chuongs: taoChuong("Kỳ Huyễn", "Màn sương"),
   },
   {
     id: "linh-vu-thien-ha",
@@ -123,18 +96,10 @@ export const danhSachTruyen: Truyen[] = [
     tacGia: "Vũ Phong",
     theLoai: "Xuyên Không",
     trangThai: "Đang ra",
-    anhBia: "https://picsum.photos/seed/linh-vu-thien-ha/400/600",
+    anhBia: "/img/9.png",
     moTa: "Một linh hồn xuyên qua dị giới, bắt đầu lại với thân phận mới và những cơ duyên khó lường.",
     luotXem: 500100,
-    chuongs: [
-      {
-        id: "chuong-1",
-        ten: "Chương 1: Tỉnh lại nơi xa lạ",
-        soChuong: 1,
-        noiDung:
-          "<p>Khi Lục Thiếu Du mở mắt, trần nhà gỗ mục nát và mùi thuốc đắng xộc vào mũi. Ký ức lạ lẫm tràn vào đầu khiến hắn mất rất lâu mới hiểu bản thân đã không còn ở thế giới cũ.</p><p>Một thân phận thấp kém, một gia tộc lạnh nhạt, và một vùng trời hoàn toàn xa lạ đang chờ hắn bước vào.</p>",
-      },
-    ],
+    chuongs: taoChuong("Xuyên Không", "Tỉnh lại nơi xa lạ"),
   },
   {
     id: "the-gioi-hoan-my",
@@ -142,18 +107,10 @@ export const danhSachTruyen: Truyen[] = [
     tacGia: "Thần Đông",
     theLoai: "Dị Giới",
     trangThai: "Hoàn thành",
-    anhBia: "https://picsum.photos/seed/the-gioi-hoan-my/400/600",
+    anhBia: "/img/15.png",
     moTa: "Một thiếu niên lớn lên giữa đại hoang, mang trong mình ý chí bước tới thế giới rộng lớn.",
     luotXem: 201800,
-    chuongs: [
-      {
-        id: "chuong-1",
-        ten: "Chương 1: Đại hoang",
-        soChuong: 1,
-        noiDung:
-          "<p>Tiếng thú gầm vọng qua rừng núi mênh mông. Trong thôn đá nhỏ, một đứa trẻ ngẩng đầu nhìn bầu trời đầy sao, nơi những truyền thuyết cổ xưa vẫn còn được kể lại mỗi đêm.</p><p>Cậu chưa biết mình sẽ đi xa đến đâu, chỉ biết trái tim mình luôn hướng về vùng trời rộng lớn ngoài kia.</p>",
-      },
-    ],
+    chuongs: taoChuong("Huyền Huyễn", "Đại hoang"),
   },
   {
     id: "nguyen-ton",
@@ -161,18 +118,10 @@ export const danhSachTruyen: Truyen[] = [
     tacGia: "Thiên Tằm",
     theLoai: "Cổ Đại",
     trangThai: "Đang ra",
-    anhBia: "https://picsum.photos/seed/nguyen-ton/400/600",
+    anhBia: "/img/10.png",
     moTa: "Một hoàng tử mất đi khí vận, từng bước đoạt lại vận mệnh bằng ý chí và sức mạnh.",
     luotXem: 145000,
-    chuongs: [
-      {
-        id: "chuong-1",
-        ten: "Chương 1: Khí vận bị đoạt",
-        soChuong: 1,
-        noiDung:
-          "<p>Trong hoàng cung tĩnh lặng, thiếu niên nhìn long trụ trước điện mà bàn tay siết chặt. Thứ thuộc về hắn đã bị cướp đi từ khi còn chưa kịp hiểu vận mệnh là gì.</p><p>Nhưng mất đi khí vận không có nghĩa là mất đi ý chí. Một ngày nào đó, hắn sẽ tự tay lấy lại tất cả.</p>",
-      },
-    ],
+    chuongs: taoChuong("Cổ Đại", "Khí vận bị đoạt"),
   },
   {
     id: "than-dao-dan-ton",
@@ -180,25 +129,10 @@ export const danhSachTruyen: Truyen[] = [
     tacGia: "Cô Đơn Địa Phi",
     theLoai: "Tiên Hiệp",
     trangThai: "Đang ra",
-    anhBia: "https://picsum.photos/seed/than-dao-dan-ton/400/600",
+    anhBia: "/img/2.png",
     moTa: "Một đan đạo thiên tài trọng sinh, bắt đầu lại con đường tu luyện.",
     luotXem: 12500,
-    chuongs: [
-      {
-        id: "chuong-1",
-        ten: "Chương 1: Trọng sinh",
-        soChuong: 1,
-        noiDung:
-          "<p>Lăng Hàn mở mắt giữa căn phòng cũ, ký ức ngàn năm như thủy triều cuốn về. Hắn từng đứng trên đỉnh đan đạo, từng khiến vô số cường giả cúi đầu cầu thuốc.</p><p>Nay quay lại tuổi thiếu niên, hắn có cơ hội sửa lại mọi tiếc nuối và bước lên con đường mạnh hơn trước.</p>",
-      },
-      {
-        id: "chuong-2",
-        ten: "Chương 2: Gặp lại cố nhân",
-        soChuong: 2,
-        noiDung:
-          "<p>Người xưa vẫn còn đó, chỉ là ánh mắt nhìn hắn đã khác. Lăng Hàn mỉm cười, không vội giải thích những điều không ai có thể tin.</p><p>Hắn biết thời gian sẽ chứng minh tất cả, còn việc trước mắt là giành lại vị trí vốn thuộc về mình.</p>",
-      },
-    ],
+    chuongs: taoChuong("Tiên Hiệp", "Trọng sinh"),
   },
   {
     id: "kiem-nghich-thuong-khung",
@@ -206,18 +140,10 @@ export const danhSachTruyen: Truyen[] = [
     tacGia: "EK Chocolate",
     theLoai: "Kiếm Hiệp",
     trangThai: "Hoàn thành",
-    anhBia: "https://picsum.photos/seed/kiem-nghich-thuong-khung/400/600",
+    anhBia: "/img/7.png",
     moTa: "Thiếu niên luyện kiếm, từng bước đi lên đỉnh cao võ đạo.",
     luotXem: 9800,
-    chuongs: [
-      {
-        id: "chuong-1",
-        ten: "Chương 1: Thiếu niên cầm kiếm",
-        soChuong: 1,
-        noiDung:
-          "<p>Trên đỉnh núi tuyết, một thiếu niên đứng lặng suốt ba canh giờ chỉ để chờ khoảnh khắc gió đổi hướng. Thanh kiếm gỗ trong tay cậu đã cũ, nhưng ánh mắt lại sắc như thép.</p><p>Một nhát kiếm chém ra, tuyết rơi hai bên như bị tách làm đôi.</p>",
-      },
-    ],
+    chuongs: taoChuong("Kiếm Hiệp", "Thiếu niên cầm kiếm"),
   },
   {
     id: "tuyet-the-duong-mon",
@@ -225,25 +151,10 @@ export const danhSachTruyen: Truyen[] = [
     tacGia: "Đường Gia Tam Thiếu",
     theLoai: "Huyền Huyễn",
     trangThai: "Hoàn thành",
-    anhBia: "https://picsum.photos/seed/tuyet-the-duong-mon/400/600",
+    anhBia: "/img/15.png",
     moTa: "Một thế hệ thiếu niên bước vào Đường Môn, mở ra hành trình tu luyện mới với những bí mật về võ hồn và tình bạn.",
     luotXem: 210000,
-    chuongs: [
-      {
-        id: "chuong-1",
-        ten: "Chương 1: Thiếu niên nhập học",
-        soChuong: 1,
-        noiDung:
-          "<p>Học viện buổi sớm phủ trong sương mỏng. Hoắc Vũ Hạo kéo hành lý cũ bước qua cổng lớn, trong lòng vừa hồi hộp vừa quyết tâm.</p><p>Cậu không có xuất thân cao quý, nhưng có một lời hứa nhất định phải giữ.</p>",
-      },
-      {
-        id: "chuong-2",
-        ten: "Chương 2: Võ hồn thức tỉnh",
-        soChuong: 2,
-        noiDung:
-          "<p>Ánh sáng xanh nhạt lan ra từ lòng bàn tay, khiến cả căn phòng kiểm tra rơi vào im lặng. Một võ hồn tưởng chừng bình thường lại ẩn chứa bí mật không ai ngờ tới.</p><p>Hoắc Vũ Hạo cúi đầu nhìn đôi tay mình, lần đầu cảm thấy tương lai không còn xa vời.</p>",
-      },
-    ],
+    chuongs: taoChuong("Huyền Huyễn", "Thiếu niên nhập học"),
   },
   {
     id: "vu-luyen-dien-phong",
@@ -251,24 +162,108 @@ export const danhSachTruyen: Truyen[] = [
     tacGia: "Mạc Mặc",
     theLoai: "Tiên Hiệp",
     trangThai: "Đang ra",
-    anhBia: "https://picsum.photos/seed/vu-luyen-dien-phong/400/600",
+    anhBia: "/img/11.png",
     moTa: "Từ một đệ tử tầm thường, nhân vật chính từng bước phá bỏ giới hạn, tiến tới đỉnh cao võ đạo.",
     luotXem: 356000,
-    chuongs: [
-      {
-        id: "chuong-1",
-        ten: "Chương 1: Đệ tử quét sân",
-        soChuong: 1,
-        noiDung:
-          "<p>Dương Khai quét lá trước võ đường như mọi ngày. Tiếng cười nhạo của đám đệ tử nội môn đã quen thuộc đến mức hắn không còn buồn để ý.</p><p>Nhưng dưới lớp đất nơi góc sân, một vật cổ lặng lẽ phát sáng, chờ người đủ kiên nhẫn phát hiện.</p>",
-      },
-      {
-        id: "chuong-2",
-        ten: "Chương 2: Thử luyện đầu tiên",
-        soChuong: 2,
-        noiDung:
-          "<p>Thử luyện trong rừng không hề công bằng với một đệ tử yếu thế. Dương Khai biết rõ điều đó, nhưng vẫn bước vào vì không còn con đường nào khác.</p><p>Trong hiểm cảnh, hắn học được bài học đầu tiên: muốn sống sót, trước hết phải dám đánh cược.</p>",
-      },
-    ],
+    chuongs: taoChuong("Tiên Hiệp", "Đệ tử quét sân"),
+  },
+  {
+    id: "hoang-hon-ben-em",
+    ten: "Hoàng Hôn Bên Em",
+    tacGia: "Minh An",
+    theLoai: "Ngôn Tình",
+    trangThai: "Đang ra",
+    anhBia: "/img/13.png",
+    moTa: "Giữa thành phố rực sáng lúc hoàng hôn, hai người xa lạ gặp nhau và viết nên một chuyện tình dịu dàng.",
+    luotXem: 73400,
+    chuongs: taoChuong("Ngôn Tình", "Ánh chiều đầu tiên"),
+  },
+  {
+    id: "yeu-em-tu-cai-nhin-dau-tien",
+    ten: "Yêu Em Từ Cái Nhìn Đầu Tiên",
+    tacGia: "Cố Mạn",
+    theLoai: "Ngôn Tình",
+    trangThai: "Hoàn thành",
+    anhBia: "/img/4.png",
+    moTa: "Một mối tình nhẹ nhàng bắt đầu từ thế giới mạng và lớn dần giữa đời thực.",
+    luotXem: 98000,
+    chuongs: taoChuong("Ngôn Tình", "Gặp nhau trong game"),
+  },
+  {
+    id: "tru-tien",
+    ten: "Tru Tiên",
+    tacGia: "Tiêu Đỉnh",
+    theLoai: "Tiên Hiệp",
+    trangThai: "Hoàn thành",
+    anhBia: "/img/19.png",
+    moTa: "Thiếu niên lạc giữa chính tà, tình nghĩa và số mệnh, từng bước đi qua những lựa chọn đau lòng.",
+    luotXem: 188000,
+    chuongs: taoChuong("Tiên Hiệp", "Thanh Vân Môn"),
+  },
+  {
+    id: "tinh-than-bien",
+    ten: "Tinh Thần Biến",
+    tacGia: "Ngã Cật Tây Hồng Thị",
+    theLoai: "Tu Chân",
+    trangThai: "Hoàn thành",
+    anhBia: "/img/14.png",
+    moTa: "Một thiếu niên không chịu khuất phục số phận, tu luyện giữa tinh hà để chạm tới thiên đạo.",
+    luotXem: 176300,
+    chuongs: taoChuong("Tu Chân", "Từ phế thể đến tinh hà"),
+  },
+  {
+    id: "mat-ma-hac-da",
+    ten: "Mật Mã Hắc Dạ",
+    tacGia: "Dạ Vũ",
+    theLoai: "Kỳ Huyễn",
+    trangThai: "Đang ra",
+    anhBia: "/img/12.png",
+    moTa: "Những biểu tượng cổ xuất hiện trong thành phố, kéo một điều tra viên vào thế giới bóng tối.",
+    luotXem: 74200,
+    chuongs: taoChuong("Kỳ Huyễn", "Dấu hiệu đầu tiên"),
+  },
+  {
+    id: "cong-thoi-gian",
+    ten: "Cổng Thời Gian",
+    tacGia: "Lam Hạ",
+    theLoai: "Xuyên Không",
+    trangThai: "Đang ra",
+    anhBia: "/img/17.png",
+    moTa: "Một cánh cổng chia đôi hiện đại và cổ xưa, mở ra hành trình thay đổi vận mệnh.",
+    luotXem: 65300,
+    chuongs: taoChuong("Xuyên Không", "Cánh cổng mở ra"),
+  },
+  {
+    id: "tuyet-kiem-son-ha",
+    ten: "Tuyết Kiếm Sơn Hà",
+    tacGia: "Bạch Lạc",
+    theLoai: "Kiếm Hiệp",
+    trangThai: "Đang ra",
+    anhBia: "/img/16.png",
+    moTa: "Một kiếm khách đi qua tuyết trắng và giang hồ đẫm máu để tìm lại lời hứa năm xưa.",
+    luotXem: 59100,
+    chuongs: taoChuong("Kiếm Hiệp", "Tuyết rơi trên kiếm"),
+  },
+  {
+    id: "hoa-mong-truong-an",
+    ten: "Hoa Mộng Trường An",
+    tacGia: "Tô Vãn",
+    theLoai: "Cổ Đại",
+    trangThai: "Hoàn thành",
+    anhBia: "/img/18.png",
+    moTa: "Giữa Trường An rực đèn, một nữ tử đi tìm tự do trong cung cấm và tình yêu.",
+    luotXem: 88400,
+    chuongs: taoChuong("Cổ Đại", "Đêm hoa đăng"),
+  },
+  {
+    id: "mua-ha-nam-ay",
+    ten: "Mùa Hạ Năm Ấy",
+    tacGia: "An Nhiên",
+    theLoai: "Ngôn Tình",
+    trangThai: "Đang ra",
+    anhBia: "/img/20.png",
+    moTa: "Cơn mưa mùa hạ đưa hai người xa lạ gặp nhau, rồi để lại một lời hẹn chưa kịp nói.",
+    luotXem: 45200,
+    chuongs: taoChuong("Ngôn Tình", "Cơn mưa đầu mùa"),
   },
 ];

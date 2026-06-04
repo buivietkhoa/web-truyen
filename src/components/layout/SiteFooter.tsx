@@ -7,15 +7,23 @@ export default function SiteFooter() {
       <div className="container">
         <div className="footer-main">
           <div className="footer-brand">
-            <Link href="/" className="footer-logo">Mọt Chạm</Link>
+            <Link href="/" className="footer-logo">
+              Mọt Chạm
+            </Link>
             <p>
-              Không gian đọc truyện nhẹ nhàng, cập nhật các bộ truyện được yêu thích
-              và gợi ý nội dung phù hợp cho từng độc giả.
+              Không gian đọc truyện nhẹ nhàng, cập nhật các bộ truyện được yêu
+              thích và gợi ý nội dung phù hợp cho từng độc giả.
             </p>
             <div className="footer-socials">
-              <Link href="/" aria-label="Facebook"><FaFacebookF /></Link>
-              <Link href="/" aria-label="TikTok"><FaTiktok /></Link>
-              <Link href="/" aria-label="Instagram"><FaInstagram /></Link>
+              <Link href="/" aria-label="Facebook">
+                <FaFacebookF />
+              </Link>
+              <Link href="/" aria-label="TikTok">
+                <FaTiktok />
+              </Link>
+              <Link href="/" aria-label="Instagram">
+                <FaInstagram />
+              </Link>
             </div>
           </div>
 
@@ -23,7 +31,6 @@ export default function SiteFooter() {
             <h4>Khám phá</h4>
             <Link href="/truyen">Truyện mới cập nhật</Link>
             <Link href="/the-loai">Thể loại truyện</Link>
-            <Link href="/tim-kiem">Tìm kiếm truyện</Link>
           </div>
 
           <div className="footer-column">
@@ -35,7 +42,10 @@ export default function SiteFooter() {
 
           <div className="footer-newsletter">
             <h4>Gợi ý đọc</h4>
-            <p>Lưu lại truyện yêu thích, theo dõi chương mới và tiếp tục đọc ở nơi bạn dừng lại.</p>
+            <p>
+              Lưu lại truyện yêu thích, theo dõi chương mới và tiếp tục đọc ở
+              nơi bạn dừng lại.
+            </p>
           </div>
         </div>
       </div>

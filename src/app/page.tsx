@@ -32,7 +32,7 @@ export default function HomePage() {
                   <img src={item!.anhBia} alt={item!.ten} />
                   <div>
                     <h4>{item!.ten}</h4>
-                    <p>{item!.theLoai} • {item!.trangThai}</p>
+                    <p>{item!.theLoai} · {item!.trangThai}</p>
                     <span>★ 4.9</span>
                   </div>
                 </Link>
@@ -56,8 +56,8 @@ export default function HomePage() {
             {latestStories.map((story) => (
               <div className="col-lg-3 col-sm-6 mb-4" key={story.id}>
                 <Link href={`/truyen/${story.id}`} className="story-card">
-                  <div className="story-cover-wrap">
-                    <img src={story.anhBia} alt={story.ten} />
+                  <div className="story-cover-wrap image-skeleton">
+                    <img src={story.anhBia} alt={story.ten} loading="lazy" />
                     <span>{story.theLoai}</span>
                   </div>
                   <h3>{story.ten}</h3>
@@ -70,7 +70,7 @@ export default function HomePage() {
 
           <div className="completed-box completed-wide-box">
             <h2>Tuyệt Phẩm Hoàn Thành</h2>
-            <p>Những bộ truyện đã kết thúc, sẵn sàng cho những buổi cày xuyên đêm.</p>
+            <p>Những bộ truyện đã kết thúc, sẵn sàng cho những buổi đọc liền mạch.</p>
 
             <div className="row">
               {danhSachTruyen
@@ -82,7 +82,7 @@ export default function HomePage() {
                       <FaBookOpen />
                       <div>
                         <h4>{truyen.ten}</h4>
-                        <p>Full • {truyen.luotXem.toLocaleString("vi-VN")} lượt đọc</p>
+                        <p>Full · {truyen.luotXem.toLocaleString("vi-VN")} lượt đọc</p>
                       </div>
                       <span>9.8</span>
                     </Link>

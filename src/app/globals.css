@@ -223,12 +223,20 @@ a:hover {
 
 .login-btn {
   background: #2455d6;
+  border: 0;
   color: #fff;
   border-radius: 18px;
   padding: 8px 18px;
   margin-left: 18px;
   font-weight: 700;
   font-size: 17px;
+  cursor: pointer;
+}
+
+.login-btn-placeholder {
+  opacity: 0;
+  pointer-events: none;
+  user-select: none;
 }
 
 .home-page {
@@ -1641,7 +1649,7 @@ button,
 input,
 textarea,
 select {
-  font-family: var(--font-dancing-script), cursive !important;
+  font-family: "Times New Roman", Times, serif !important;
 }
 
 body {
@@ -2827,14 +2835,36 @@ body {
 }
 
 .reading-history-item span {
-  min-width: 52px;
-  border-radius: 999px;
-  background: #eef2ff;
-  color: #2455d6;
-  font-size: 13px;
-  font-weight: 800;
-  padding: 6px 10px;
+  min-width: 92px;
+  height: auto;
+  border: 0;
+  border-radius: 18px;
+  background: #2455d6;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 10px 18px;
   text-align: center;
+}
+
+.reading-history-item:nth-child(1) .reading-progress {
+  background: #2455d6;
+}
+
+.reading-history-item:nth-child(2) .reading-progress {
+  background: #2455d6;
+}
+
+.reading-history-item:nth-child(3) .reading-progress {
+  background: #2455d6;
+}
+
+.reading-history-item:nth-child(4) .reading-progress {
+  background: #2455d6;
 }
 
 .profile-update-modal {
@@ -3472,19 +3502,33 @@ body {
     margin-bottom: 14px;
   }
 
-  .mobile-menu-panel nav a {
+  .mobile-menu-panel nav a,
+  .mobile-menu-panel nav button {
+    background: transparent;
+    border: 0;
     border-radius: 10px;
     color: #111827;
     display: block;
     font-size: 15px;
     font-weight: 700;
     padding: 10px 12px;
+    text-align: left;
+    width: 100%;
   }
 
   .mobile-menu-panel nav a.active,
-  .mobile-menu-panel nav a:hover {
+  .mobile-menu-panel nav a:hover,
+  .mobile-menu-panel nav button:hover {
     background: #eef2ff;
     color: #2455d6;
+  }
+
+  .mobile-auth-placeholder {
+    color: #94a3b8;
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 10px 12px;
   }
 
   .mobile-menu-categories {
@@ -4028,4 +4072,200 @@ body {
   .not-found-card div {
     flex-direction: column;
   }
+}
+
+/* Slightly larger typography for story detail pages */
+.story-detail-page .story-breadcrumb {
+  font-size: 15px;
+}
+
+.story-detail-page .story-tags span {
+  font-size: 14px;
+}
+
+.story-detail-page .story-main-info h1 {
+  font-size: 42px;
+}
+
+.story-detail-page .story-meta {
+  font-size: 16px;
+}
+
+.story-detail-page .story-actions .btn {
+  font-size: 17px;
+  padding: 11px 20px;
+}
+
+.story-detail-page .story-summary h2,
+.story-detail-page .chapter-panel-header h2,
+.story-detail-page .related-box h2 {
+  font-size: 24px;
+}
+
+.story-detail-page .story-summary p,
+.story-detail-page .chapter-row {
+  font-size: 18px;
+}
+
+.story-detail-page .chapter-panel-header span,
+.story-detail-page .chapter-row small {
+  font-size: 15px;
+}
+
+.story-detail-page .chapter-more {
+  font-size: 16px;
+}
+
+.story-detail-page .related-item h3 {
+  font-size: 17px;
+}
+
+.story-detail-page .related-item p,
+.story-detail-page .related-item span {
+  font-size: 15px;
+}
+
+@media (max-width: 575.98px) {
+  .story-detail-page .story-main-info h1 {
+    font-size: 34px;
+  }
+
+  .story-detail-page .story-summary p,
+  .story-detail-page .chapter-row {
+    font-size: 17px;
+  }
+}
+
+/* Final frontend polish: mobile menu, empty states, reader chapter select and image placeholders */
+body.menu-open {
+  overflow: hidden;
+}
+
+.mobile-menu-backdrop {
+  display: none;
+}
+
+@media (max-width: 767.98px) {
+  .mobile-menu-backdrop.open {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    border: 0;
+    background: rgba(15, 23, 42, 0.28);
+    display: block;
+  }
+
+  .mobile-menu-panel {
+    max-height: calc(100vh - 86px);
+    overflow-y: auto;
+  }
+}
+
+.image-skeleton {
+  background:
+    linear-gradient(110deg, #e5e7eb 8%, #f8fafc 18%, #e5e7eb 33%);
+  background-size: 200% 100%;
+  animation: image-shimmer 1.2s linear infinite;
+}
+
+.image-skeleton img {
+  display: block;
+}
+
+@keyframes image-shimmer {
+  to {
+    background-position-x: -200%;
+  }
+}
+
+.empty-state {
+  border: 1px solid #dbe3ef;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
+  padding: 36px;
+  text-align: center;
+}
+
+.empty-state h2 {
+  color: #111827;
+  font-size: 28px;
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+.empty-state p {
+  color: #64748b;
+  margin-bottom: 22px;
+}
+
+.empty-state a {
+  border-radius: 999px;
+  background: #2455d6;
+  color: #fff;
+  display: inline-flex;
+  font-weight: 800;
+  padding: 11px 20px;
+}
+
+.reader-chapter-select {
+  width: min(100%, 520px);
+  display: grid;
+  gap: 8px;
+  margin: 0 auto 22px;
+}
+
+.reader-chapter-select span {
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.reader-chapter-select select {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #fff;
+  color: #111827;
+  outline: 0;
+  padding: 0 18px;
+  text-align: center;
+}
+
+.reader-dark .reader-chapter-select select {
+  border-color: rgba(148, 163, 184, 0.32);
+  background: #1f2937;
+  color: #e5e7eb;
+}
+
+@media (max-width: 575.98px) {
+  .empty-state {
+    padding: 28px 18px;
+  }
+
+  .empty-state h2 {
+    font-size: 24px;
+  }
+}
+
+/* Force reading progress badges to match the login button shape */
+.reading-history-item .reading-progress {
+  width: 116px !important;
+  min-width: 116px !important;
+  height: 40px !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+  background: #2455d6 !important;
+  color: #fff !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 18px !important;
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  box-shadow: none !important;
 }

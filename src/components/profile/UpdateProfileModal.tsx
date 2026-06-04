@@ -1,10 +1,76 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { FaEdit, FaTimes } from "react-icons/fa";
 
-export default function UpdateProfileModal() {
+interface UpdateProfileModalProps {
+  name: string;
+  email: string;
+  phone?: string | null;
+  gender?: string | null;
+}
+
+export default function UpdateProfileModal({ name, email, phone, gender }: UpdateProfileModalProps) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const [formName, setFormName] = useState(name);
+  const [formPhone, setFormPhone] = useState(phone || "");
+  const [formGender, setFormGender] = useState(gender || "");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleClose = () => {
+    if (loading) {
+      return;
+    }
+
+    setError("");
+    setFormName(name);
+    setFormPhone(phone || "");
+    setFormGender(gender || "");
+    setIsOpen(false);
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+
+    if (!formName.trim()) {
+      setError("Họ tên không được để trống.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: formName,
+          phone: formPhone,
+          gender: formGender,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || "Không thể cập nhật hồ sơ.");
+        return;
+      }
+
+      setIsOpen(false);
+      router.refresh();
+    } catch {
+      setError("Không thể kết nối đến server.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <>
@@ -14,12 +80,7 @@ export default function UpdateProfileModal() {
 
       {isOpen && (
         <div className="reading-modal-backdrop" role="presentation">
-          <section
-            className="profile-update-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="profile-update-title"
-          >
+          <section className="profile-update-modal" role="dialog" aria-modal="true" aria-labelledby="profile-update-title">
             <div className="reading-modal-head">
               <div>
                 <h2 id="profile-update-title">Cập nhật thông tin</h2>
@@ -29,32 +90,48 @@ export default function UpdateProfileModal() {
               <button
                 type="button"
                 className="reading-modal-close"
-                onClick={() => setIsOpen(false)}
+                onClick={handleClose}
                 aria-label="Đóng cập nhật hồ sơ"
               >
                 <FaTimes />
               </button>
             </div>
 
-            <form className="profile-update-form">
+            {error && <div className="alert alert-danger">{error}</div>}
+
+            <form className="profile-update-form" onSubmit={handleSubmit}>
               <label>
                 <span>Họ và tên</span>
-                <input defaultValue="Nguyễn Văn A" />
+                <input
+                  value={formName}
+                  onChange={(event) => setFormName(event.target.value)}
+                  disabled={loading}
+                />
               </label>
 
               <label>
                 <span>Email</span>
-                <input defaultValue="vana.nguyen@example.com" type="email" />
+                <input value={email} type="email" readOnly />
               </label>
 
               <label>
                 <span>Số điện thoại</span>
-                <input defaultValue="0987 *** 321" />
+                <input
+                  value={formPhone}
+                  onChange={(event) => setFormPhone(event.target.value)}
+                  placeholder="Nhập số điện thoại"
+                  disabled={loading}
+                />
               </label>
 
               <label>
                 <span>Giới tính</span>
-                <select defaultValue="Nam">
+                <select
+                  value={formGender}
+                  onChange={(event) => setFormGender(event.target.value)}
+                  disabled={loading}
+                >
+                  <option value="">Chọn giới tính</option>
                   <option>Nam</option>
                   <option>Nữ</option>
                   <option>Khác</option>
@@ -62,11 +139,11 @@ export default function UpdateProfileModal() {
               </label>
 
               <div className="profile-update-actions">
-                <button type="button" onClick={() => setIsOpen(false)}>
+                <button type="button" onClick={handleClose} disabled={loading}>
                   Hủy
                 </button>
-                <button type="button" onClick={() => setIsOpen(false)}>
-                  Lưu thay đổi
+                <button type="submit" disabled={loading}>
+                  {loading ? "Đang lưu..." : "Lưu thay đổi"}
                 </button>
               </div>
             </form>

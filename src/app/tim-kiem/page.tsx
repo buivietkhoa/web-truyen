@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { FaSearch } from "react-icons/fa";
 import SiteFooter from "@/components/layout/SiteFooter";
@@ -9,6 +10,11 @@ interface Props {
     q?: string;
   }>;
 }
+
+export const metadata: Metadata = {
+  title: "Tìm kiếm truyện - Mọt Chạm",
+  description: "Tìm truyện theo tên truyện, tác giả hoặc thể loại trên Mọt Chạm.",
+};
 
 function normalize(value: string) {
   return value.trim().toLowerCase();
@@ -49,19 +55,27 @@ export default async function TimKiemPage({ searchParams }: Props) {
             )}
           </div>
 
-          <div className="catalog-story-grid">
-            {results.map((truyen) => (
-              <Link href={`/truyen/${truyen.id}`} className="catalog-story-card" key={truyen.id}>
-                <img src={truyen.anhBia} alt={truyen.ten} />
-                <div>
-                  <span>{truyen.theLoai}</span>
-                  <h2>{truyen.ten}</h2>
-                  <p>{truyen.tacGia}</p>
-                  <small>{truyen.luotXem.toLocaleString("vi-VN")} lượt xem</small>
-                </div>
-              </Link>
-            ))}
-          </div>
+          {keyword && results.length === 0 ? (
+            <div className="empty-state">
+              <h2>Không tìm thấy truyện phù hợp</h2>
+              <p>Thử tìm bằng tên tác giả, thể loại hoặc một từ khóa ngắn hơn.</p>
+              <Link href="/the-loai">Xem theo thể loại</Link>
+            </div>
+          ) : (
+            <div className="catalog-story-grid">
+              {results.map((truyen) => (
+                <Link href={`/truyen/${truyen.id}`} className="catalog-story-card" key={truyen.id}>
+                  <img src={truyen.anhBia} alt={truyen.ten} loading="lazy" />
+                  <div>
+                    <span>{truyen.theLoai}</span>
+                    <h2>{truyen.ten}</h2>
+                    <p>{truyen.tacGia}</p>
+                    <small>{truyen.luotXem.toLocaleString("vi-VN")} lượt xem</small>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </section>
       </main>
 

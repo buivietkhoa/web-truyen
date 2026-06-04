@@ -40,22 +40,13 @@ export default function ReadingHistoryModal() {
 
   return (
     <>
-      <button
-        className="profile-menu-button"
-        type="button"
-        onClick={() => setIsOpen(true)}
-      >
+      <button className="profile-menu-button" type="button" onClick={() => setIsOpen(true)}>
         <FaHistory /> Lịch sử đọc
       </button>
 
       {isOpen && (
         <div className="reading-modal-backdrop" role="presentation">
-          <section
-            className="reading-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="reading-history-title"
-          >
+          <section className="reading-modal" role="dialog" aria-modal="true" aria-labelledby="reading-history-title">
             <div className="reading-modal-head">
               <div>
                 <h2 id="reading-history-title">Lịch sử đọc</h2>
@@ -80,7 +71,7 @@ export default function ReadingHistoryModal() {
                     <p>{item.chapter} · {item.time}</p>
                   </div>
 
-                  <span>{item.progress}</span>
+                  <span className="reading-progress">{item.progress}</span>
                 </Link>
               ))}
             </div>

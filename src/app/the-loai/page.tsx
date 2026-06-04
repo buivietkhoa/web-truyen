@@ -1,8 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
 import { categories } from "@/data/categories";
 import { danhSachTruyen } from "@/data/truyen";
+
+export const metadata: Metadata = {
+  title: "Thể loại truyện - Mọt Chạm",
+  description: "Khám phá truyện theo thể loại trên Mọt Chạm.",
+};
 
 export default function TheLoaiPage() {
   return (

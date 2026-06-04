@@ -12,9 +12,10 @@ export default function DangKiPage() {
   const [matKhau, setMatKhau] = useState("");
   const [xacNhanMatKhau, setXacNhanMatKhau] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setError("");
 
     if (!hoTen.trim() || !email.trim() || !matKhau.trim() || !xacNhanMatKhau.trim()) {
@@ -32,16 +33,34 @@ export default function DangKiPage() {
       return;
     }
 
-    const user = {
-      hoTen,
-      email,
-      matKhau,
-    };
+    setLoading(true);
 
-    localStorage.setItem("user", JSON.stringify(user));
-    localStorage.setItem("isLogin", "true");
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: hoTen.trim(),
+          email: email.trim(),
+          password: matKhau,
+        }),
+      });
 
-    router.push("/");
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || "Đăng ký thất bại.");
+        return;
+      }
+
+      router.push("/dang-nhap");
+    } catch {
+      setError("Không thể kết nối đến server.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -54,51 +73,59 @@ export default function DangKiPage() {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Họ tên</label>
+            <label htmlFor="register-name">Họ tên</label>
             <input
+              id="register-name"
               type="text"
               className="form-control"
               placeholder="Nhập họ tên"
               value={hoTen}
-              onChange={(e) => setHoTen(e.target.value)}
+              onChange={(event) => setHoTen(event.target.value)}
+              disabled={loading}
             />
           </div>
 
           <div className="form-group">
-            <label>Email</label>
+            <label htmlFor="register-email">Email</label>
             <input
+              id="register-email"
               type="email"
               className="form-control"
               placeholder="Nhập email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(event) => setEmail(event.target.value)}
+              disabled={loading}
             />
           </div>
 
           <div className="form-group">
-            <label>Mật khẩu</label>
+            <label htmlFor="register-password">Mật khẩu</label>
             <input
+              id="register-password"
               type="password"
               className="form-control"
               placeholder="Tối thiểu 6 ký tự"
               value={matKhau}
-              onChange={(e) => setMatKhau(e.target.value)}
+              onChange={(event) => setMatKhau(event.target.value)}
+              disabled={loading}
             />
           </div>
 
           <div className="form-group">
-            <label>Xác nhận mật khẩu</label>
+            <label htmlFor="register-confirm-password">Xác nhận mật khẩu</label>
             <input
+              id="register-confirm-password"
               type="password"
               className="form-control"
               placeholder="Nhập lại mật khẩu"
               value={xacNhanMatKhau}
-              onChange={(e) => setXacNhanMatKhau(e.target.value)}
+              onChange={(event) => setXacNhanMatKhau(event.target.value)}
+              disabled={loading}
             />
           </div>
 
-          <button type="submit" className="btn btn-primary btn-block">
-            Đăng ký
+          <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+            {loading ? "Đang đăng ký..." : "Đăng ký"}
           </button>
         </form>
 

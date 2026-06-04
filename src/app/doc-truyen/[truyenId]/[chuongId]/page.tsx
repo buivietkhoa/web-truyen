@@ -1,8 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FaArrowLeft, FaArrowRight, FaBookOpen } from "react-icons/fa";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
+import ChapterSelect from "@/components/reader/ChapterSelect";
 import ReaderToolbar from "@/components/reader/ReaderToolbar";
 import { danhSachTruyen } from "@/data/truyen";
 
@@ -13,23 +15,46 @@ interface Props {
   }>;
 }
 
-export default async function DocTruyenPage({ params }: Props) {
-  const { truyenId, chuongId } = await params;
+function getReaderData(truyenId: string, chuongId: string) {
   const truyen = danhSachTruyen.find((item) => item.id === truyenId);
-
-  if (!truyen) {
-    notFound();
-  }
+  if (!truyen) return null;
 
   const currentIndex = truyen.chuongs.findIndex((chuong) => chuong.id === chuongId);
+  if (currentIndex === -1) return null;
 
-  if (currentIndex === -1) {
+  return {
+    truyen,
+    chuong: truyen.chuongs[currentIndex],
+    prevChapter: truyen.chuongs[currentIndex - 1],
+    nextChapter: truyen.chuongs[currentIndex + 1],
+  };
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { truyenId, chuongId } = await params;
+  const data = getReaderData(truyenId, chuongId);
+
+  if (!data) {
+    return {
+      title: "Không tìm thấy chương - Mọt Chạm",
+    };
+  }
+
+  return {
+    title: `${data.chuong.ten} - ${data.truyen.ten}`,
+    description: `Đọc ${data.chuong.ten} của truyện ${data.truyen.ten} trên Mọt Chạm.`,
+  };
+}
+
+export default async function DocTruyenPage({ params }: Props) {
+  const { truyenId, chuongId } = await params;
+  const data = getReaderData(truyenId, chuongId);
+
+  if (!data) {
     notFound();
   }
 
-  const chuong = truyen.chuongs[currentIndex];
-  const prevChapter = truyen.chuongs[currentIndex - 1];
-  const nextChapter = truyen.chuongs[currentIndex + 1];
+  const { truyen, chuong, prevChapter, nextChapter } = data;
 
   return (
     <>
@@ -51,6 +76,8 @@ export default async function DocTruyenPage({ params }: Props) {
               <h1>{chuong.ten}</h1>
               <span>{truyen.ten}</span>
             </header>
+
+            <ChapterSelect truyenId={truyen.id} chuongs={truyen.chuongs} currentChapterId={chuong.id} />
 
             <div className="reader-nav">
               {prevChapter ? (

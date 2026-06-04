@@ -1,10 +1,7 @@
 import Link from "next/link";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
-import {
-  FaChevronLeft,
-  FaChevronRight,
-} from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { danhSachTruyen } from "@/data/truyen";
 
 const updateTimes = [
@@ -40,8 +37,8 @@ export default function DanhSachTruyenPage() {
           <div className="updates-grid">
             {updatedStories.map((truyen) => (
               <Link href={`/truyen/${truyen.id}`} className="update-card" key={truyen.id}>
-                <div className="update-cover">
-                  <img src={truyen.anhBia} alt={truyen.ten} />
+                <div className="update-cover image-skeleton">
+                  <img src={truyen.anhBia} alt={truyen.ten} loading="lazy" />
                   <span>{truyen.theLoai.toUpperCase()}</span>
                 </div>
 

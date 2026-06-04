@@ -1,18 +1,36 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
-import {
-  FaBookOpen,
-  FaEye,
-  FaStar,
-} from "react-icons/fa";
+import { FaBookOpen, FaEye, FaStar } from "react-icons/fa";
 import { danhSachTruyen } from "@/data/truyen";
 
 interface Props {
   params: Promise<{
     id: string;
   }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const truyen = danhSachTruyen.find((item) => item.id === id);
+
+  if (!truyen) {
+    return {
+      title: "Không tìm thấy truyện - Mọt Chạm",
+    };
+  }
+
+  return {
+    title: `${truyen.ten} - Mọt Chạm`,
+    description: truyen.moTa,
+    openGraph: {
+      title: `${truyen.ten} - Mọt Chạm`,
+      description: truyen.moTa,
+      images: [truyen.anhBia],
+    },
+  };
 }
 
 export default async function ChiTietTruyenPage({ params }: Props) {
@@ -32,6 +50,9 @@ export default async function ChiTietTruyenPage({ params }: Props) {
       ? truyenCungTheLoai
       : danhSachTruyen.filter((item) => item.id !== truyen.id).slice(0, 3);
 
+  const firstChapter = truyen.chuongs[0];
+  const latestChapter = truyen.chuongs.at(-1);
+
   return (
     <>
       <SiteHeader />
@@ -41,14 +62,14 @@ export default async function ChiTietTruyenPage({ params }: Props) {
           <nav className="story-breadcrumb">
             <Link href="/">Trang chủ</Link>
             <span>›</span>
-            <Link href="/truyen">{truyen.theLoai}</Link>
+            <Link href="/the-loai">{truyen.theLoai}</Link>
             <span>›</span>
             <strong>{truyen.ten}</strong>
           </nav>
 
           <section className="story-hero">
-            <div className="story-cover">
-              <img src={truyen.anhBia} alt={truyen.ten} />
+            <div className="story-cover image-skeleton">
+              <img src={truyen.anhBia} alt={truyen.ten} loading="lazy" />
             </div>
 
             <div className="story-main-info">
@@ -70,17 +91,18 @@ export default async function ChiTietTruyenPage({ params }: Props) {
               </div>
 
               <div className="story-actions">
-                <Link
-                  href={`/doc-truyen/${truyen.id}/${truyen.chuongs[0]?.id || ""}`}
-                  className="btn btn-primary"
-                >
-                  <FaBookOpen />
-                  Đọc từ đầu
-                </Link>
+                {firstChapter && (
+                  <Link href={`/doc-truyen/${truyen.id}/${firstChapter.id}`} className="btn btn-primary">
+                    <FaBookOpen />
+                    Đọc từ đầu
+                  </Link>
+                )}
 
-                <Link href="#chapters" className="btn btn-outline-primary">
-                  Mới nhất: Chương {truyen.chuongs.length}
-                </Link>
+                {latestChapter && (
+                  <Link href={`/doc-truyen/${truyen.id}/${latestChapter.id}`} className="btn btn-outline-primary">
+                    Mới nhất: Chương {latestChapter.soChuong}
+                  </Link>
+                )}
               </div>
 
               <div className="story-summary">
@@ -99,18 +121,12 @@ export default async function ChiTietTruyenPage({ params }: Props) {
 
               <div className="chapter-list">
                 {truyen.chuongs.map((chuong, index) => (
-                  <Link
-                    href={`/doc-truyen/${truyen.id}/${chuong.id}`}
-                    className="chapter-row"
-                    key={chuong.id}
-                  >
+                  <Link href={`/doc-truyen/${truyen.id}/${chuong.id}`} className="chapter-row" key={chuong.id}>
                     <span>{chuong.ten}</span>
                     <small>{24 + index}/10/2023</small>
                   </Link>
                 ))}
               </div>
-
-              <button className="chapter-more">Xem tất cả chương</button>
             </div>
 
             <aside className="story-sidebar">
@@ -119,7 +135,7 @@ export default async function ChiTietTruyenPage({ params }: Props) {
 
                 {relatedStories.map((item) => (
                   <Link href={`/truyen/${item.id}`} className="related-item" key={item.id}>
-                    <img src={item.anhBia} alt={item.ten} />
+                    <img src={item.anhBia} alt={item.ten} loading="lazy" />
                     <div>
                       <h3>{item.ten}</h3>
                       <p>{item.tacGia}</p>

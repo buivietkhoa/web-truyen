@@ -3,37 +3,35 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FaBookOpen, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { danhSachTruyen } from "@/data/truyen";
 
 const slides = [
   {
     badge: "TRUYỆN HOT",
-    title: "Kiếm Đạo Độc Tôn: Bí Mật Của Cửu Giới",
+    story: danhSachTruyen.find(
+      (truyen) => truyen.id === "kiem-nghich-thuong-khung"
+    )!,
     description:
-      "Hành trình của một thiếu niên bình thường tình cờ nhặt được thanh kiếm cổ, từ đó khai mở con đường trở thành chí tôn...",
-    image: "https://picsum.photos/900/520?random=101",
-    detailUrl: "/truyen/kiem-nghich-thuong-khung",
+      "Hành trình của một thiếu niên cầm kiếm, vượt qua phong ba võ lâm để chạm tới đỉnh cao kiếm đạo.",
   },
   {
     badge: "MỚI CẬP NHẬT",
-    title: "Thần Đạo Đan Tôn",
+    story: danhSachTruyen.find((truyen) => truyen.id === "than-dao-dan-ton")!,
     description:
       "Một đan đạo thiên tài trọng sinh, bắt đầu lại con đường tu luyện và từng bước bước lên đỉnh cao.",
-    image: "https://picsum.photos/900/520?random=102",
-    detailUrl: "/truyen/than-dao-dan-ton",
   },
   {
     badge: "ĐỀ CỬ",
-    title: "Phàm Nhân Tu Tiên",
+    story: danhSachTruyen.find((truyen) => truyen.id === "pham-nhan-tu-tien")!,
     description:
       "Một người bình thường bước vào tiên đạo, dùng nghị lực và trí tuệ để vượt qua vô số kiếp nạn.",
-    image: "https://picsum.photos/900/520?random=103",
-    detailUrl: "/truyen/pham-nhan-tu-tien",
   },
 ];
 
 export default function HeroSlider() {
   const [activeIndex, setActiveIndex] = useState(0);
   const activeSlide = slides[activeIndex];
+  const detailUrl = `/truyen/${activeSlide.story.id}`;
 
   const goToPrev = () => {
     setActiveIndex((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
@@ -52,12 +50,12 @@ export default function HeroSlider() {
   return (
     <div
       className="hero-slider"
-      style={{ backgroundImage: `url(${activeSlide.image})` }}
+      style={{ backgroundImage: `url(${activeSlide.story.anhBia})` }}
     >
       <Link
-        href={activeSlide.detailUrl}
+        href={detailUrl}
         className="hero-slide-link"
-        aria-label={`Xem chi tiết truyện ${activeSlide.title}`}
+        aria-label={`Xem chi tiết truyện ${activeSlide.story.ten}`}
       />
 
       <button
@@ -80,18 +78,16 @@ export default function HeroSlider() {
 
       <div className="hero-slider-content">
         <span className="hot-badge">{activeSlide.badge}</span>
-
-        <h1>{activeSlide.title}</h1>
-
+        <h1>{activeSlide.story.ten}</h1>
         <p>{activeSlide.description}</p>
 
         <div className="hero-actions">
-          <Link href={activeSlide.detailUrl} className="btn btn-primary">
+          <Link href={detailUrl} className="btn btn-primary">
             <FaBookOpen className="mr-2" />
             Đọc ngay
           </Link>
 
-          <Link href={activeSlide.detailUrl} className="btn btn-outline-light">
+          <Link href={detailUrl} className="btn btn-outline-light">
             Chi tiết
           </Link>
         </div>
@@ -100,7 +96,7 @@ export default function HeroSlider() {
       <div className="hero-dots">
         {slides.map((slide, index) => (
           <button
-            key={slide.title}
+            key={slide.story.id}
             type="button"
             onClick={() => setActiveIndex(index)}
             className={index === activeIndex ? "active" : ""}

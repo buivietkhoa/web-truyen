@@ -11,21 +11,14 @@ export default function DangNhapPage() {
   const [email, setEmail] = useState("");
   const [matKhau, setMatKhau] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const loginWithProvider = (provider: "Google" | "Facebook") => {
-    const user = {
-      hoTen: `Người dùng ${provider}`,
-      email: `${provider.toLowerCase()}@motcham.demo`,
-      provider,
-    };
-
-    localStorage.setItem("user", JSON.stringify(user));
-    localStorage.setItem("isLogin", "true");
-    router.push("/");
+    setError(`Đăng nhập bằng ${provider} cần cấu hình OAuth ở bước sau.`);
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setError("");
 
     if (!email.trim() || !matKhau.trim()) {
@@ -33,22 +26,34 @@ export default function DangNhapPage() {
       return;
     }
 
-    const savedUser = localStorage.getItem("user");
+    setLoading(true);
 
-    if (!savedUser) {
-      setError("Tài khoản chưa tồn tại. Vui lòng đăng ký trước.");
-      return;
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password: matKhau,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || "Đăng nhập thất bại.");
+        return;
+      }
+
+      router.push("/profile");
+      router.refresh();
+    } catch {
+      setError("Không thể kết nối đến server.");
+    } finally {
+      setLoading(false);
     }
-
-    const user = JSON.parse(savedUser);
-
-    if (user.email !== email || user.matKhau !== matKhau) {
-      setError("Email hoặc mật khẩu không đúng.");
-      return;
-    }
-
-    localStorage.setItem("isLogin", "true");
-    router.push("/");
   };
 
   return (
@@ -61,29 +66,33 @@ export default function DangNhapPage() {
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Email</label>
+            <label htmlFor="login-email">Email</label>
             <input
+              id="login-email"
               type="email"
               className="form-control"
               placeholder="Nhập email của bạn"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(event) => setEmail(event.target.value)}
+              disabled={loading}
             />
           </div>
 
           <div className="form-group">
-            <label>Mật khẩu</label>
+            <label htmlFor="login-password">Mật khẩu</label>
             <input
+              id="login-password"
               type="password"
               className="form-control"
               placeholder="Nhập mật khẩu"
               value={matKhau}
-              onChange={(e) => setMatKhau(e.target.value)}
+              onChange={(event) => setMatKhau(event.target.value)}
+              disabled={loading}
             />
           </div>
 
-          <button type="submit" className="btn btn-primary btn-block">
-            Đăng nhập
+          <button type="submit" className="btn btn-primary btn-block" disabled={loading}>
+            {loading ? "Đang đăng nhập..." : "Đăng nhập"}
           </button>
         </form>
 
