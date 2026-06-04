@@ -1,10 +1,9 @@
 import Link from "next/link";
+import SiteFooter from "@/components/layout/SiteFooter";
+import SiteHeader from "@/components/layout/SiteHeader";
 import {
-  FaBell,
   FaChevronLeft,
   FaChevronRight,
-  FaRegUserCircle,
-  FaSearch,
 } from "react-icons/fa";
 import { danhSachTruyen } from "@/data/truyen";
 
@@ -30,36 +29,7 @@ export default function DanhSachTruyenPage() {
 
   return (
     <>
-      <header className="site-header">
-        <div className="container d-flex align-items-center">
-          <Link href="/" className="brand">Mọt Chạm</Link>
-
-          <nav className="main-nav">
-            <Link href="/">Trang chủ</Link>
-            <details className="nav-dropdown">
-              <summary className="nav-dropdown-trigger">Thể loại</summary>
-              <div className="category-dropdown">
-                {["Tiên Hiệp", "Kiếm Hiệp", "Ngôn Tình", "Đô Thị", "Huyền Huyễn", "Xuyên Không", "Trinh Thám", "Kinh Dị"].map((cat) => (
-                  <Link href="/the-loai" key={cat}>{cat}</Link>
-                ))}
-              </div>
-            </details>
-            <Link href="/truyen" className="active">Mới cập nhật</Link>
-          </nav>
-
-          <div className="search-box ml-auto">
-            <FaSearch />
-            <input placeholder="Tìm truyện..." />
-          </div>
-
-          <FaBell className="header-icon" />
-          <Link href="/profile" className="header-icon-link" aria-label="Hồ sơ cá nhân">
-            <FaRegUserCircle />
-          </Link>
-
-          <Link href="/dang-nhap" className="login-btn">Đăng nhập</Link>
-        </div>
-      </header>
+      <SiteHeader activePage="updates" />
 
       <main className="updates-page">
         <section className="updates-container">
@@ -102,6 +72,7 @@ export default function DanhSachTruyenPage() {
         </section>
       </main>
 
+      <SiteFooter />
     </>
   );
 }

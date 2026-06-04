@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond } from "next/font/google";
+import { Dancing_Script } from "next/font/google";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./globals.css";
 
-const cormorantGaramond = Cormorant_Garamond({
-  variable: "--font-cormorant-garamond",
+const dancingScript = Dancing_Script({
+  variable: "--font-dancing-script",
   weight: ["400", "500", "600", "700"],
   subsets: ["latin", "vietnamese"],
 });
@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" className={cormorantGaramond.variable}>
+    <html lang="vi" className={dancingScript.variable}>
       <body>{children}</body>
     </html>
   );
