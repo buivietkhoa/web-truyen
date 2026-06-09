@@ -26,12 +26,13 @@ Recommended for production uploads:
 
 ```env
 CLOUDINARY_CLOUD_NAME="your-cloud-name"
+CLOUDINARY_UPLOAD_PRESET="your-unsigned-upload-preset"
 CLOUDINARY_API_KEY="your-api-key"
 CLOUDINARY_API_SECRET="your-api-secret"
 CLOUDINARY_UPLOAD_FOLDER="web-truyen/covers"
 ```
 
-If the Cloudinary variables are present, admin cover uploads are stored on Cloudinary and remain available after deploys. If they are missing, uploads fall back to `public/uploads` for local testing only.
+If `CLOUDINARY_UPLOAD_PRESET` is present, uploads use Cloudinary unsigned upload and do not need `CLOUDINARY_API_KEY` or `CLOUDINARY_API_SECRET`. If no upload preset is configured, the app falls back to signed upload with API key and secret. If Cloudinary variables are missing, uploads fall back to `public/uploads` for local testing only.
 
 ## Database
 

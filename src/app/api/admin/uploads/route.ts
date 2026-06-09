@@ -1,4 +1,4 @@
-import { randomUUID, createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { NextResponse } from "next/server";
@@ -25,11 +25,21 @@ function cleanEnvValue(value: string | undefined) {
   return value?.trim().replace(/^["']|["']$/g, "");
 }
 
+function getCloudinaryConfig() {
+  return {
+    cloudName: cleanEnvValue(process.env.CLOUDINARY_CLOUD_NAME),
+    apiKey: cleanEnvValue(process.env.CLOUDINARY_API_KEY),
+    apiSecret: cleanEnvValue(process.env.CLOUDINARY_API_SECRET),
+    uploadPreset: cleanEnvValue(process.env.CLOUDINARY_UPLOAD_PRESET),
+    uploadFolder: cleanEnvValue(process.env.CLOUDINARY_UPLOAD_FOLDER) || "web-truyen/covers",
+  };
+}
+
 function hasCloudinaryConfig() {
+  const config = getCloudinaryConfig();
   return Boolean(
-    cleanEnvValue(process.env.CLOUDINARY_CLOUD_NAME) &&
-      cleanEnvValue(process.env.CLOUDINARY_API_KEY) &&
-      cleanEnvValue(process.env.CLOUDINARY_API_SECRET)
+    config.cloudName &&
+      (config.uploadPreset || (config.apiKey && config.apiSecret))
   );
 }
 
@@ -42,21 +52,47 @@ function createCloudinarySignature(params: Record<string, string>, apiSecret: st
   return createHash("sha1").update(`${payload}${apiSecret}`).digest("hex");
 }
 
-async function uploadToCloudinary(file: File) {
-  const cloudName = cleanEnvValue(process.env.CLOUDINARY_CLOUD_NAME);
-  const apiKey = cleanEnvValue(process.env.CLOUDINARY_API_KEY);
-  const apiSecret = cleanEnvValue(process.env.CLOUDINARY_API_SECRET);
+async function uploadToCloudinaryUnsigned(file: File) {
+  const { cloudName, uploadPreset, uploadFolder } = getCloudinaryConfig();
+
+  if (!cloudName || !uploadPreset) {
+    throw new Error("Thiếu cấu hình Cloudinary unsigned upload preset.");
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", uploadPreset);
+  formData.append("folder", uploadFolder);
+
+  const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+    method: "POST",
+    body: formData,
+  });
+  const data = (await response.json()) as CloudinaryUploadResponse;
+
+  if (!response.ok || !data.secure_url) {
+    throw new Error(data.error?.message || "Không thể upload ảnh lên Cloudinary.");
+  }
+
+  return {
+    url: data.secure_url,
+    publicId: data.public_id,
+    storage: "cloudinary",
+  };
+}
+
+async function uploadToCloudinarySigned(file: File) {
+  const { cloudName, apiKey, apiSecret, uploadFolder } = getCloudinaryConfig();
 
   if (!cloudName || !apiKey || !apiSecret) {
     throw new Error("Thiếu cấu hình Cloudinary.");
   }
 
   const timestamp = Math.floor(Date.now() / 1000).toString();
-  const folder = cleanEnvValue(process.env.CLOUDINARY_UPLOAD_FOLDER) || "web-truyen/covers";
   const publicId = `${Date.now()}-${randomUUID()}`;
   const signature = createCloudinarySignature(
     {
-      folder,
+      folder: uploadFolder,
       public_id: publicId,
       timestamp,
     },
@@ -67,7 +103,7 @@ async function uploadToCloudinary(file: File) {
   formData.append("file", file);
   formData.append("api_key", apiKey);
   formData.append("timestamp", timestamp);
-  formData.append("folder", folder);
+  formData.append("folder", uploadFolder);
   formData.append("public_id", publicId);
   formData.append("signature", signature);
 
@@ -86,6 +122,16 @@ async function uploadToCloudinary(file: File) {
     publicId: data.public_id,
     storage: "cloudinary",
   };
+}
+
+async function uploadToCloudinary(file: File) {
+  const { uploadPreset } = getCloudinaryConfig();
+
+  if (uploadPreset) {
+    return uploadToCloudinaryUnsigned(file);
+  }
+
+  return uploadToCloudinarySigned(file);
 }
 
 async function uploadToLocal(file: File, extension: string) {
