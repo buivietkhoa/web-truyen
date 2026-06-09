@@ -5,6 +5,15 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { FaFacebookF, FaGoogle } from "react-icons/fa";
 
+async function readErrorMessage(response: Response, fallback: string) {
+  try {
+    const data = await response.json();
+    return typeof data.message === "string" ? data.message : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export default function DangNhapPage() {
   const router = useRouter();
 
@@ -21,7 +30,9 @@ export default function DangNhapPage() {
     event.preventDefault();
     setError("");
 
-    if (!email.trim() || !matKhau.trim()) {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedEmail || !matKhau.trim()) {
       setError("Vui lòng nhập đầy đủ email và mật khẩu.");
       return;
     }
@@ -35,22 +46,20 @@ export default function DangNhapPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: email.trim(),
+          email: normalizedEmail,
           password: matKhau,
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        setError(data.message || "Đăng nhập thất bại.");
+        setError(await readErrorMessage(response, "Đăng nhập thất bại."));
         return;
       }
 
       router.push("/profile");
       router.refresh();
     } catch {
-      setError("Không thể kết nối đến server.");
+      setError("Không thể kết nối đến server. Vui lòng kiểm tra dev server và thử lại.");
     } finally {
       setLoading(false);
     }
@@ -75,6 +84,8 @@ export default function DangNhapPage() {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               disabled={loading}
+              autoComplete="email"
+              required
             />
           </div>
 
@@ -88,6 +99,8 @@ export default function DangNhapPage() {
               value={matKhau}
               onChange={(event) => setMatKhau(event.target.value)}
               disabled={loading}
+              autoComplete="current-password"
+              required
             />
           </div>
 
@@ -103,11 +116,11 @@ export default function DangNhapPage() {
         </div>
 
         <div className="auth-social-buttons">
-          <button type="button" onClick={() => loginWithProvider("Google")}>
+          <button type="button" onClick={() => loginWithProvider("Google")} disabled={loading}>
             <FaGoogle />
             Google
           </button>
-          <button type="button" onClick={() => loginWithProvider("Facebook")}>
+          <button type="button" onClick={() => loginWithProvider("Facebook")} disabled={loading}>
             <FaFacebookF />
             Facebook
           </button>

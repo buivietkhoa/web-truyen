@@ -5,12 +5,22 @@ import { db } from "@/lib/db";
 
 export async function POST(request: Request) {
   try {
+    const jwtSecret = process.env.JWT_SECRET;
+
+    if (!jwtSecret) {
+      return NextResponse.json(
+        { message: "Server chưa cấu hình JWT_SECRET." },
+        { status: 500 }
+      );
+    }
+
     const body = await request.json();
-    const { email, password } = body;
+    const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+    const password = typeof body.password === "string" ? body.password : "";
 
     if (!email || !password) {
       return NextResponse.json(
-        { message: "Vui lòng nhập email và mật khẩu" },
+        { message: "Vui lòng nhập email và mật khẩu." },
         { status: 400 }
       );
     }
@@ -21,7 +31,7 @@ export async function POST(request: Request) {
 
     if (!user) {
       return NextResponse.json(
-        { message: "Tài khoản không tồn tại" },
+        { message: "Tài khoản không tồn tại." },
         { status: 401 }
       );
     }
@@ -30,7 +40,7 @@ export async function POST(request: Request) {
 
     if (!isPasswordCorrect) {
       return NextResponse.json(
-        { message: "Mật khẩu không đúng" },
+        { message: "Mật khẩu không đúng." },
         { status: 401 }
       );
     }
@@ -41,14 +51,14 @@ export async function POST(request: Request) {
         email: user.email,
         role: user.role,
       },
-      process.env.JWT_SECRET as string,
+      jwtSecret,
       {
         expiresIn: "7d",
       }
     );
 
     const response = NextResponse.json({
-      message: "Đăng nhập thành công",
+      message: "Đăng nhập thành công.",
       user: {
         id: user.id,
         name: user.name,
@@ -70,7 +80,7 @@ export async function POST(request: Request) {
     console.error("LOGIN_ERROR", error);
 
     return NextResponse.json(
-      { message: "Lỗi server khi đăng nhập" },
+      { message: "Lỗi server khi đăng nhập." },
       { status: 500 }
     );
   }

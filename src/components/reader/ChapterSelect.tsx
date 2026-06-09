@@ -1,11 +1,16 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Chuong } from "@/types/truyen";
+
+interface ChapterOption {
+  id: string;
+  title: string;
+  number: number;
+}
 
 interface ChapterSelectProps {
   truyenId: string;
-  chuongs: Chuong[];
+  chuongs: ChapterOption[];
   currentChapterId: string;
 }
 
@@ -21,7 +26,7 @@ export default function ChapterSelect({ truyenId, chuongs, currentChapterId }: C
       >
         {chuongs.map((chuong) => (
           <option value={chuong.id} key={chuong.id}>
-            {chuong.ten}
+            Chương {chuong.number}: {chuong.title}
           </option>
         ))}
       </select>

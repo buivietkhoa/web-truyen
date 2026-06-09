@@ -9,8 +9,10 @@ const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL,
 });
 
+const cachedPrisma = globalForPrisma.prisma;
+
 export const db =
-  globalForPrisma.prisma ??
+  (cachedPrisma && "affiliateSetting" in cachedPrisma ? cachedPrisma : undefined) ??
   new PrismaClient({
     adapter,
   });

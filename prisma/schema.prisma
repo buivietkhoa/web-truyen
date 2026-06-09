@@ -31,7 +31,6 @@ model Story {
   id          String   @id @default(cuid())
   slug        String   @unique
   title       String
-  author      String
   category    String
   status      String
   coverImage  String
@@ -83,4 +82,20 @@ model Favorite {
   story Story @relation(fields: [storyId], references: [id], onDelete: Cascade)
 
   @@unique([userId, storyId])
+}
+
+model AffiliateSetting {
+  id           String   @id @default(cuid())
+  affiliateUrl String
+  buttonText   String
+  title        String
+  description  String
+  bannerImage  String?
+  buttonColor  String   @default("#0b2fa3")
+  waitSeconds  Int      @default(3)
+  fontSize     Int      @default(16)
+  effect       String   @default("fade")
+  enabled      Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

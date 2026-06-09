@@ -11,6 +11,15 @@ interface UpdateProfileModalProps {
   gender?: string | null;
 }
 
+async function readErrorMessage(response: Response, fallback: string) {
+  try {
+    const data = await response.json();
+    return typeof data.message === "string" ? data.message : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export default function UpdateProfileModal({ name, email, phone, gender }: UpdateProfileModalProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -56,17 +65,21 @@ export default function UpdateProfileModal({ name, email, phone, gender }: Updat
         }),
       });
 
-      const data = await response.json();
+      if (response.status === 401) {
+        router.push("/dang-nhap");
+        router.refresh();
+        return;
+      }
 
       if (!response.ok) {
-        setError(data.message || "Không thể cập nhật hồ sơ.");
+        setError(await readErrorMessage(response, "Không thể cập nhật hồ sơ."));
         return;
       }
 
       setIsOpen(false);
       router.refresh();
     } catch {
-      setError("Không thể kết nối đến server.");
+      setError("Không thể kết nối đến server. Vui lòng kiểm tra dev server và thử lại.");
     } finally {
       setLoading(false);
     }
@@ -106,6 +119,7 @@ export default function UpdateProfileModal({ name, email, phone, gender }: Updat
                   value={formName}
                   onChange={(event) => setFormName(event.target.value)}
                   disabled={loading}
+                  required
                 />
               </label>
 

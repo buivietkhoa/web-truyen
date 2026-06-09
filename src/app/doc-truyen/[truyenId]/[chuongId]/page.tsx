@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FaArrowLeft, FaArrowRight, FaBookOpen } from "react-icons/fa";
+import AffiliateGateModal from "@/components/affiliate/AffiliateGateModal";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
 import ChapterSelect from "@/components/reader/ChapterSelect";
 import ReaderToolbar from "@/components/reader/ReaderToolbar";
-import { danhSachTruyen } from "@/data/truyen";
+import { getAffiliateSetting } from "@/lib/affiliate";
+import { db } from "@/lib/db";
 
 interface Props {
   params: Promise<{
@@ -15,24 +17,41 @@ interface Props {
   }>;
 }
 
-function getReaderData(truyenId: string, chuongId: string) {
-  const truyen = danhSachTruyen.find((item) => item.id === truyenId);
-  if (!truyen) return null;
+async function getReaderData(truyenId: string, chuongId: string) {
+  const story = await db.story.findUnique({
+    where: {
+      slug: truyenId,
+    },
+    include: {
+      chapters: {
+        orderBy: {
+          number: "asc",
+        },
+      },
+    },
+  });
 
-  const currentIndex = truyen.chuongs.findIndex((chuong) => chuong.id === chuongId);
-  if (currentIndex === -1) return null;
+  if (!story) {
+    return null;
+  }
+
+  const currentIndex = story.chapters.findIndex((chapter) => chapter.id === chuongId);
+
+  if (currentIndex === -1) {
+    return null;
+  }
 
   return {
-    truyen,
-    chuong: truyen.chuongs[currentIndex],
-    prevChapter: truyen.chuongs[currentIndex - 1],
-    nextChapter: truyen.chuongs[currentIndex + 1],
+    story,
+    chapter: story.chapters[currentIndex],
+    prevChapter: story.chapters[currentIndex - 1],
+    nextChapter: story.chapters[currentIndex + 1],
   };
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { truyenId, chuongId } = await params;
-  const data = getReaderData(truyenId, chuongId);
+  const data = await getReaderData(truyenId, chuongId);
 
   if (!data) {
     return {
@@ -41,20 +60,37 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   return {
-    title: `${data.chuong.ten} - ${data.truyen.ten}`,
-    description: `Đọc ${data.chuong.ten} của truyện ${data.truyen.ten} trên Mọt Chạm.`,
+    title: `Chương ${data.chapter.number}: ${data.chapter.title} - ${data.story.title}`,
+    description: `Đọc chương ${data.chapter.number} của truyện ${data.story.title} trên Mọt Chạm.`,
   };
 }
 
 export default async function DocTruyenPage({ params }: Props) {
   const { truyenId, chuongId } = await params;
-  const data = getReaderData(truyenId, chuongId);
+  const data = await getReaderData(truyenId, chuongId);
 
   if (!data) {
     notFound();
   }
 
-  const { truyen, chuong, prevChapter, nextChapter } = data;
+  const { story, chapter, prevChapter, nextChapter } = data;
+  const affiliateSetting = await getAffiliateSetting();
+  const affiliateModalSetting = affiliateSetting?.enabled &&
+    affiliateSetting.affiliateUrl &&
+    affiliateSetting.buttonText &&
+    affiliateSetting.title
+    ? {
+        affiliateUrl: affiliateSetting.affiliateUrl,
+        buttonText: affiliateSetting.buttonText,
+        title: affiliateSetting.title,
+        description: affiliateSetting.description,
+        bannerImage: affiliateSetting.bannerImage,
+        buttonColor: affiliateSetting.buttonColor,
+        waitSeconds: affiliateSetting.waitSeconds,
+        fontSize: affiliateSetting.fontSize,
+        effect: affiliateSetting.effect,
+      }
+    : null;
 
   return (
     <>
@@ -66,34 +102,36 @@ export default async function DocTruyenPage({ params }: Props) {
             <nav className="reader-breadcrumb">
               <Link href="/">Trang chủ</Link>
               <span>/</span>
-              <Link href={`/truyen/${truyen.id}`}>{truyen.ten}</Link>
+              <Link href={`/truyen/${story.slug}`}>{story.title}</Link>
               <span>/</span>
-              <strong>{chuong.ten}</strong>
+              <strong>Chương {chapter.number}</strong>
             </nav>
 
             <header className="reader-head">
-              <p>{truyen.theLoai} · {truyen.tacGia}</p>
-              <h1>{chuong.ten}</h1>
-              <span>{truyen.ten}</span>
+              <p>{story.category}</p>
+              <h1>
+                Chương {chapter.number}: {chapter.title}
+              </h1>
+              <span>{story.title}</span>
             </header>
 
-            <ChapterSelect truyenId={truyen.id} chuongs={truyen.chuongs} currentChapterId={chuong.id} />
+            <ChapterSelect truyenId={story.slug} chuongs={story.chapters} currentChapterId={chapter.id} />
 
             <div className="reader-nav">
               {prevChapter ? (
-                <Link href={`/doc-truyen/${truyen.id}/${prevChapter.id}`}>
+                <Link href={`/doc-truyen/${story.slug}/${prevChapter.id}`}>
                   <FaArrowLeft /> Chương trước
                 </Link>
               ) : (
                 <span />
               )}
 
-              <Link href={`/truyen/${truyen.id}`}>
+              <Link href={`/truyen/${story.slug}`}>
                 <FaBookOpen /> Chi tiết truyện
               </Link>
 
               {nextChapter ? (
-                <Link href={`/doc-truyen/${truyen.id}/${nextChapter.id}`}>
+                <Link href={`/doc-truyen/${story.slug}/${nextChapter.id}`}>
                   Chương sau <FaArrowRight />
                 </Link>
               ) : (
@@ -103,24 +141,24 @@ export default async function DocTruyenPage({ params }: Props) {
 
             <section
               className="reader-content"
-              dangerouslySetInnerHTML={{ __html: chuong.noiDung }}
+              dangerouslySetInnerHTML={{ __html: chapter.content }}
             />
 
             <div className="reader-nav reader-nav-bottom">
               {prevChapter ? (
-                <Link href={`/doc-truyen/${truyen.id}/${prevChapter.id}`}>
+                <Link href={`/doc-truyen/${story.slug}/${prevChapter.id}`}>
                   <FaArrowLeft /> Chương trước
                 </Link>
               ) : (
                 <span />
               )}
 
-              <Link href={`/truyen/${truyen.id}`}>
+              <Link href={`/truyen/${story.slug}`}>
                 Danh sách chương
               </Link>
 
               {nextChapter ? (
-                <Link href={`/doc-truyen/${truyen.id}/${nextChapter.id}`}>
+                <Link href={`/doc-truyen/${story.slug}/${nextChapter.id}`}>
                   Chương sau <FaArrowRight />
                 </Link>
               ) : (
@@ -130,6 +168,13 @@ export default async function DocTruyenPage({ params }: Props) {
           </article>
         </main>
       </ReaderToolbar>
+
+      {affiliateModalSetting && (
+        <AffiliateGateModal
+          chapterId={chapter.id}
+          setting={affiliateModalSetting}
+        />
+      )}
 
       <SiteFooter />
     </>

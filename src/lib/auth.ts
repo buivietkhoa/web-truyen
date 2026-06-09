@@ -8,6 +8,12 @@ type TokenPayload = {
 };
 
 export async function getCurrentUser() {
+  const jwtSecret = process.env.JWT_SECRET;
+
+  if (!jwtSecret) {
+    return null;
+  }
+
   const cookieStore = await cookies();
   const token = cookieStore.get("token")?.value;
 
@@ -16,12 +22,7 @@ export async function getCurrentUser() {
   }
 
   try {
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET as string
-    ) as TokenPayload;
-
-    return decoded;
+    return jwt.verify(token, jwtSecret) as TokenPayload;
   } catch {
     return null;
   }

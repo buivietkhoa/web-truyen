@@ -70,6 +70,7 @@ export default function SiteHeaderClient({ activePage, initialUserName }: SiteHe
           href="/profile"
           className={`header-icon-link ${activePage === "profile" ? "active" : ""}`}
           aria-label="Hồ sơ cá nhân"
+          title={userName || "Hồ sơ cá nhân"}
         >
           <FaRegUserCircle />
         </Link>

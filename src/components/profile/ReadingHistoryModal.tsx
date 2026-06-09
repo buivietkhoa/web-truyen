@@ -68,7 +68,7 @@ export default function ReadingHistoryModal() {
                 <Link href={item.href} className="reading-history-item" key={item.title}>
                   <div>
                     <h3>{item.title}</h3>
-                    <p>{item.chapter} · {item.time}</p>
+                    <p>{item.chapter} - {item.time}</p>
                   </div>
 
                   <span className="reading-progress">{item.progress}</span>

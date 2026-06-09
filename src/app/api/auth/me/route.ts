@@ -7,7 +7,7 @@ export async function GET() {
 
   if (!currentUser) {
     return NextResponse.json(
-      { message: "Chưa đăng nhập" },
+      { message: "Chưa đăng nhập." },
       { status: 401 }
     );
   }
@@ -24,6 +24,13 @@ export async function GET() {
       createdAt: true,
     },
   });
+
+  if (!user) {
+    return NextResponse.json(
+      { message: "Tài khoản không còn tồn tại." },
+      { status: 401 }
+    );
+  }
 
   return NextResponse.json({ user });
 }

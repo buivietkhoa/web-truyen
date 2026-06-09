@@ -18,11 +18,11 @@ export default function TruyenCard({ truyen }: Props) {
         <h5 className="card-title">{truyen.ten}</h5>
 
         <p className="card-text text-muted mb-1">
-          Tác giả: {truyen.tacGia}
+          Thể loại: {truyen.theLoai}
         </p>
 
         <p className="card-text text-muted mb-1">
-          Thể loại: {truyen.theLoai}
+          Trạng thái: {truyen.trangThai}
         </p>
 
         <p className="card-text small">{truyen.moTa}</p>

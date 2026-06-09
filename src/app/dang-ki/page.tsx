@@ -4,6 +4,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 
+async function readErrorMessage(response: Response, fallback: string) {
+  try {
+    const data = await response.json();
+    return typeof data.message === "string" ? data.message : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export default function DangKiPage() {
   const router = useRouter();
 
@@ -18,7 +27,10 @@ export default function DangKiPage() {
     event.preventDefault();
     setError("");
 
-    if (!hoTen.trim() || !email.trim() || !matKhau.trim() || !xacNhanMatKhau.trim()) {
+    const normalizedName = hoTen.trim();
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!normalizedName || !normalizedEmail || !matKhau.trim() || !xacNhanMatKhau.trim()) {
       setError("Vui lòng nhập đầy đủ thông tin.");
       return;
     }
@@ -42,22 +54,21 @@ export default function DangKiPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: hoTen.trim(),
-          email: email.trim(),
+          name: normalizedName,
+          email: normalizedEmail,
           password: matKhau,
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        setError(data.message || "Đăng ký thất bại.");
+        setError(await readErrorMessage(response, "Đăng ký thất bại."));
         return;
       }
 
-      router.push("/dang-nhap");
+      router.push("/profile");
+      router.refresh();
     } catch {
-      setError("Không thể kết nối đến server.");
+      setError("Không thể kết nối đến server. Vui lòng kiểm tra dev server và thử lại.");
     } finally {
       setLoading(false);
     }
@@ -82,6 +93,8 @@ export default function DangKiPage() {
               value={hoTen}
               onChange={(event) => setHoTen(event.target.value)}
               disabled={loading}
+              autoComplete="name"
+              required
             />
           </div>
 
@@ -95,6 +108,8 @@ export default function DangKiPage() {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               disabled={loading}
+              autoComplete="email"
+              required
             />
           </div>
 
@@ -108,6 +123,9 @@ export default function DangKiPage() {
               value={matKhau}
               onChange={(event) => setMatKhau(event.target.value)}
               disabled={loading}
+              autoComplete="new-password"
+              minLength={6}
+              required
             />
           </div>
 
@@ -121,6 +139,9 @@ export default function DangKiPage() {
               value={xacNhanMatKhau}
               onChange={(event) => setXacNhanMatKhau(event.target.value)}
               disabled={loading}
+              autoComplete="new-password"
+              minLength={6}
+              required
             />
           </div>
 

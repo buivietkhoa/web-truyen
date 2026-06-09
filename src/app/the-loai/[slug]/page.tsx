@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
 import { getCategoryBySlug } from "@/data/categories";
-import { danhSachTruyen } from "@/data/truyen";
+import { db } from "@/lib/db";
 
 interface Props {
   params: Promise<{
@@ -36,7 +36,22 @@ export default async function ChiTietTheLoaiPage({ params }: Props) {
     notFound();
   }
 
-  const stories = danhSachTruyen.filter((truyen) => truyen.theLoai === category.name);
+  const stories = await db.story.findMany({
+    where: {
+      category: category.name,
+    },
+    orderBy: {
+      updatedAt: "desc",
+    },
+    include: {
+      chapters: {
+        orderBy: {
+          number: "desc",
+        },
+        take: 1,
+      },
+    },
+  });
 
   return (
     <>
@@ -45,7 +60,7 @@ export default async function ChiTietTheLoaiPage({ params }: Props) {
       <main className="catalog-page">
         <section className="catalog-container">
           <div className="catalog-heading">
-            <Link href="/the-loai" className="catalog-back">← Tất cả thể loại</Link>
+            <Link href="/the-loai" className="catalog-back">{"<-"} Tất cả thể loại</Link>
             <h1>{category.name}</h1>
             <p>{stories.length} truyện thuộc thể loại {category.name}.</p>
           </div>
@@ -53,19 +68,19 @@ export default async function ChiTietTheLoaiPage({ params }: Props) {
           {stories.length === 0 ? (
             <div className="empty-state">
               <h2>Chưa có truyện trong thể loại này</h2>
-              <p>Bạn có thể quay lại danh sách thể loại để tìm truyện khác.</p>
-              <Link href="/the-loai">Xem tất cả thể loại</Link>
+              <p>Admin chưa thêm truyện nào cho thể loại {category.name}.</p>
+              <Link href="/admin/truyen">Vào quản trị truyện</Link>
             </div>
           ) : (
             <div className="catalog-story-grid">
-              {stories.map((truyen) => (
-                <Link href={`/truyen/${truyen.id}`} className="catalog-story-card" key={truyen.id}>
-                  <img src={truyen.anhBia} alt={truyen.ten} loading="lazy" />
+              {stories.map((story) => (
+                <Link href={`/truyen/${story.slug}`} className="catalog-story-card" key={story.id}>
+                  <img src={story.coverImage} alt={story.title} loading="lazy" />
                   <div>
-                    <span>{truyen.trangThai}</span>
-                    <h2>{truyen.ten}</h2>
-                    <p>{truyen.tacGia}</p>
-                    <small>Chương {truyen.chuongs.at(-1)?.soChuong || truyen.chuongs.length}</small>
+                    <span>{story.status}</span>
+                    <h2>{story.title}</h2>
+                    <p>{story.category}</p>
+                    <small>{story.chapters[0] ? `Chương ${story.chapters[0].number}` : "Chưa có chương"}</small>
                   </div>
                 </Link>
               ))}

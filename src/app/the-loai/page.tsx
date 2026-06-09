@@ -3,14 +3,23 @@ import Link from "next/link";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
 import { categories } from "@/data/categories";
-import { danhSachTruyen } from "@/data/truyen";
+import { db } from "@/lib/db";
 
 export const metadata: Metadata = {
   title: "Thể loại truyện - Mọt Chạm",
   description: "Khám phá truyện theo thể loại trên Mọt Chạm.",
 };
 
-export default function TheLoaiPage() {
+export default async function TheLoaiPage() {
+  const counts = await db.story.groupBy({
+    by: ["category"],
+    _count: {
+      _all: true,
+    },
+  });
+
+  const countMap = new Map(counts.map((item) => [item.category, item._count._all]));
+
   return (
     <>
       <SiteHeader />
@@ -19,12 +28,12 @@ export default function TheLoaiPage() {
         <section className="catalog-container">
           <div className="catalog-heading">
             <h1>Thể loại truyện</h1>
-            <p>Chọn một thể loại để xem các truyện được phân nhóm đúng nội dung.</p>
+            <p>Chọn một thể loại để xem các truyện admin đã phân nhóm.</p>
           </div>
 
           <div className="category-page-grid">
             {categories.map((category) => {
-              const count = danhSachTruyen.filter((truyen) => truyen.theLoai === category.name).length;
+              const count = countMap.get(category.name) || 0;
 
               return (
                 <Link href={`/the-loai/${category.slug}`} className="category-page-card" key={category.slug}>

@@ -3,94 +3,138 @@ import HeroSlider from "@/components/home/HeroSlider";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
 import { FaBookOpen, FaStar } from "react-icons/fa";
-import { danhSachTruyen } from "@/data/truyen";
+import { db } from "@/lib/db";
 
-const latestStories = danhSachTruyen.slice(0, 8);
-const recommended = [
-  danhSachTruyen.find((truyen) => truyen.id === "tuyet-the-duong-mon"),
-  danhSachTruyen.find((truyen) => truyen.id === "vu-luyen-dien-phong"),
-  danhSachTruyen.find((truyen) => truyen.id === "than-dao-dan-ton"),
-].filter(Boolean);
+export default async function HomePage() {
+  const [latestStories, completedStories] = await Promise.all([
+    db.story.findMany({
+      orderBy: {
+        updatedAt: "desc",
+      },
+      take: 8,
+      include: {
+        chapters: {
+          orderBy: {
+            number: "desc",
+          },
+          take: 1,
+        },
+      },
+    }),
+    db.story.findMany({
+      where: {
+        status: "Hoàn thành",
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+      take: 4,
+    }),
+  ]);
 
-export default function HomePage() {
+  const heroStories = latestStories.slice(0, 3).map((story) => ({
+    slug: story.slug,
+    title: story.title,
+    category: story.category,
+    coverImage: story.coverImage,
+    description: story.description,
+  }));
+
+  const recommended = latestStories.slice(0, 3);
+
   return (
     <>
       <SiteHeader activePage="home" />
 
       <main className="home-page">
-        <section className="container hero-section">
-          <div className="row">
-            <div className="col-lg-8">
-              <HeroSlider />
+        {latestStories.length === 0 ? (
+          <section className="container mt-5">
+            <div className="empty-state">
+              <h1>Chưa có truyện nào</h1>
+              <p>Website đang dùng dữ liệu thật từ database. Admin có thể thêm truyện đầu tiên trong trang quản trị.</p>
+              <Link href="/admin/truyen">Vào quản trị truyện</Link>
             </div>
+          </section>
+        ) : (
+          <>
+            <section className="container hero-section">
+              <div className="row">
+                <div className="col-lg-8">
+                  <HeroSlider stories={heroStories} />
+                </div>
 
-            <div className="col-lg-4">
-              <h3 className="side-title"><FaStar /> Đề cử cho bạn</h3>
+                <div className="col-lg-4">
+                  <h3 className="side-title"><FaStar /> Đề cử cho bạn</h3>
 
-              {recommended.map((item) => (
-                <Link href={`/truyen/${item!.id}`} className="recommend-card" key={item!.id}>
-                  <img src={item!.anhBia} alt={item!.ten} />
-                  <div>
-                    <h4>{item!.ten}</h4>
-                    <p>{item!.theLoai} · {item!.trangThai}</p>
-                    <span>★ 4.9</span>
-                  </div>
-                </Link>
-              ))}
-
-              <Link href="/truyen" className="small-link">Xem thêm đề cử</Link>
-            </div>
-          </div>
-        </section>
-
-        <section className="container mt-5 home-main-section">
-          <div className="section-heading">
-            <div>
-              <h2>Truyện Mới Cập Nhật</h2>
-              <p>Khám phá những chương truyện mới nhất vừa lên kệ.</p>
-            </div>
-            <Link href="/truyen">Tất cả</Link>
-          </div>
-
-          <div className="row latest-grid">
-            {latestStories.map((story) => (
-              <div className="col-lg-3 col-sm-6 mb-4" key={story.id}>
-                <Link href={`/truyen/${story.id}`} className="story-card">
-                  <div className="story-cover-wrap image-skeleton">
-                    <img src={story.anhBia} alt={story.ten} loading="lazy" />
-                    <span>{story.theLoai}</span>
-                  </div>
-                  <h3>{story.ten}</h3>
-                  <p>{story.tacGia}</p>
-                  <strong>Chương {story.chuongs.at(-1)?.soChuong || 1}</strong>
-                </Link>
-              </div>
-            ))}
-          </div>
-
-          <div className="completed-box completed-wide-box">
-            <h2>Tuyệt Phẩm Hoàn Thành</h2>
-            <p>Những bộ truyện đã kết thúc, sẵn sàng cho những buổi đọc liền mạch.</p>
-
-            <div className="row">
-              {danhSachTruyen
-                .filter((truyen) => truyen.trangThai === "Hoàn thành")
-                .slice(0, 4)
-                .map((truyen) => (
-                  <div className="col-lg-3 col-md-6 mb-3" key={truyen.id}>
-                    <Link href={`/truyen/${truyen.id}`} className="completed-item">
-                      <FaBookOpen />
+                  {recommended.map((item) => (
+                    <Link href={`/truyen/${item.slug}`} className="recommend-card" key={item.id}>
+                      <img src={item.coverImage} alt={item.title} />
                       <div>
-                        <h4>{truyen.ten}</h4>
-                        <p>Full · {truyen.luotXem.toLocaleString("vi-VN")} lượt đọc</p>
+                        <h4>{item.title}</h4>
+                        <p>{item.category} - {item.status}</p>
+                        <span>{item.views.toLocaleString("vi-VN")} lượt đọc</span>
                       </div>
-                      <span>9.8</span>
+                    </Link>
+                  ))}
+
+                  <Link href="/truyen" className="small-link">Xem thêm đề cử</Link>
+                </div>
+              </div>
+            </section>
+
+            <section className="container mt-5 home-main-section">
+              <div className="section-heading">
+                <div>
+                  <h2>Truyện Mới Cập Nhật</h2>
+                  <p>Những truyện được admin thêm hoặc cập nhật gần đây.</p>
+                </div>
+                <Link href="/truyen">Tất cả</Link>
+              </div>
+
+              <div className="row latest-grid">
+                {latestStories.map((story) => (
+                  <div className="col-lg-3 col-sm-6 mb-4" key={story.id}>
+                    <Link href={`/truyen/${story.slug}`} className="story-card">
+                      <div className="story-cover-wrap image-skeleton">
+                        <img src={story.coverImage} alt={story.title} loading="lazy" />
+                        <span>{story.category}</span>
+                      </div>
+                      <h3>{story.title}</h3>
+                      <p>{story.category}</p>
+                      <strong>
+                        {story.chapters[0] ? `Chương ${story.chapters[0].number}` : "Chưa có chương"}
+                      </strong>
                     </Link>
                   </div>
                 ))}
-            </div>
-          </div>
-        </section>
+              </div>
+
+              <div className="completed-box completed-wide-box">
+                <h2>Truyện Hoàn Thành</h2>
+                <p>Các bộ truyện đã được admin đánh dấu hoàn thành.</p>
+
+                {completedStories.length === 0 ? (
+                  <p>Chưa có truyện hoàn thành.</p>
+                ) : (
+                  <div className="row">
+                    {completedStories.map((story) => (
+                      <div className="col-lg-3 col-md-6 mb-3" key={story.id}>
+                        <Link href={`/truyen/${story.slug}`} className="completed-item">
+                          <FaBookOpen />
+                          <div>
+                            <h4>{story.title}</h4>
+                            <p>{story.views.toLocaleString("vi-VN")} lượt đọc</p>
+                          </div>
+                          <span>Full</span>
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </section>
+          </>
+        )}
       </main>
 
       <SiteFooter />

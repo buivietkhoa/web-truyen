@@ -8,7 +8,6 @@ export interface Chuong {
 export interface Truyen {
   id: string;
   ten: string;
-  tacGia: string;
   theLoai: string;
   trangThai: "Đang ra" | "Hoàn thành" | "Tạm ngưng";
   anhBia: string;

@@ -3,23 +3,15 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
-import { FaBookOpen, FaEdit, FaRegCommentDots, FaRegUserCircle, FaUser } from "react-icons/fa";
+import { FaBookOpen, FaEdit, FaHeart, FaRegUserCircle, FaUser } from "react-icons/fa";
 import ReadingHistoryModal from "@/components/profile/ReadingHistoryModal";
 import UpdateProfileModal from "@/components/profile/UpdateProfileModal";
-import { danhSachTruyen } from "@/data/truyen";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 export const metadata: Metadata = {
   title: "Hồ sơ cá nhân - Mọt Chạm",
 };
-
-const recentStories = [
-  danhSachTruyen.find((truyen) => truyen.id === "than-dao-dan-ton"),
-  danhSachTruyen.find((truyen) => truyen.id === "de-ba"),
-  danhSachTruyen.find((truyen) => truyen.id === "pham-nhan-tu-tien"),
-  danhSachTruyen.find((truyen) => truyen.id === "tuyet-the-duong-mon"),
-].filter(Boolean);
 
 function formatJoinDate(date: Date) {
   return new Intl.DateTimeFormat("vi-VN").format(date);
@@ -32,27 +24,60 @@ export default async function ProfilePage() {
     redirect("/dang-nhap");
   }
 
-  const user = await db.user.findUnique({
-    where: {
-      id: currentUser.id,
-    },
-    select: {
-      name: true,
-      email: true,
-      phone: true,
-      gender: true,
-      avatar: true,
-      createdAt: true,
-    },
-  });
+  const [user, readingCount, favoriteCount, favoriteStories] = await Promise.all([
+    db.user.findUnique({
+      where: {
+        id: currentUser.id,
+      },
+      select: {
+        name: true,
+        email: true,
+        phone: true,
+        gender: true,
+        avatar: true,
+        createdAt: true,
+      },
+    }),
+    db.readingHistory.count({
+      where: {
+        userId: currentUser.id,
+      },
+    }),
+    db.favorite.count({
+      where: {
+        userId: currentUser.id,
+      },
+    }),
+    db.favorite.findMany({
+      where: {
+        userId: currentUser.id,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 4,
+      include: {
+        story: {
+          include: {
+            chapters: {
+              orderBy: {
+                number: "desc",
+              },
+              take: 1,
+            },
+          },
+        },
+      },
+    }),
+  ]);
 
   if (!user) {
     redirect("/dang-nhap");
   }
 
   const profileStats = [
-    { label: "Số truyện đã đọc", value: "142", icon: <FaBookOpen /> },
-    { label: "Số bình luận", value: "28", icon: <FaRegCommentDots /> },
+    { label: "Truyện đã đọc", value: readingCount.toString(), icon: <FaBookOpen /> },
+    { label: "Truyện yêu thích", value: favoriteCount.toString(), icon: <FaHeart /> },
     { label: "Ngày tham gia", value: formatJoinDate(user.createdAt), icon: <FaRegUserCircle /> },
   ];
 
@@ -75,7 +100,7 @@ export default async function ProfilePage() {
               </div>
 
               <h1>{user.name}</h1>
-              <p>Thành viên bạc</p>
+              <p>Thành viên Mọt Chạm</p>
             </div>
 
             <nav className="profile-menu">
@@ -131,19 +156,27 @@ export default async function ProfilePage() {
 
             <section className="profile-library">
               <div className="profile-section-head">
-                <h2>Tủ truyện gần đây</h2>
-                <Link href="/truyen">Xem tất cả →</Link>
+                <h2>Truyện yêu thích</h2>
+                <Link href="/truyen">Xem truyện</Link>
               </div>
 
-              <div className="profile-story-grid">
-                {recentStories.map((story) => (
-                  <Link href={`/truyen/${story!.id}`} className="profile-story-card" key={story!.id}>
-                    <img src={story!.anhBia} alt={story!.ten} loading="lazy" />
-                    <h3>{story!.ten}</h3>
-                    <p>Chương {story!.chuongs.at(-1)?.soChuong || 1}</p>
-                  </Link>
-                ))}
-              </div>
+              {favoriteStories.length === 0 ? (
+                <div className="empty-state">
+                  <h2>Chưa có truyện yêu thích</h2>
+                  <p>Khi bạn yêu thích truyện, danh sách sẽ hiển thị tại đây.</p>
+                  <Link href="/truyen">Khám phá truyện</Link>
+                </div>
+              ) : (
+                <div className="profile-story-grid">
+                  {favoriteStories.map(({ story }) => (
+                    <Link href={`/truyen/${story.slug}`} className="profile-story-card" key={story.id}>
+                      <img src={story.coverImage} alt={story.title} loading="lazy" />
+                      <h3>{story.title}</h3>
+                      <p>{story.chapters[0] ? `Chương ${story.chapters[0].number}` : "Chưa có chương"}</p>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </section>
           </div>
         </section>
