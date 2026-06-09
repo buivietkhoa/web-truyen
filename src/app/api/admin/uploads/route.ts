@@ -21,11 +21,15 @@ interface CloudinaryUploadResponse {
   };
 }
 
+function cleanEnvValue(value: string | undefined) {
+  return value?.trim().replace(/^["']|["']$/g, "");
+}
+
 function hasCloudinaryConfig() {
   return Boolean(
-    process.env.CLOUDINARY_CLOUD_NAME &&
-      process.env.CLOUDINARY_API_KEY &&
-      process.env.CLOUDINARY_API_SECRET
+    cleanEnvValue(process.env.CLOUDINARY_CLOUD_NAME) &&
+      cleanEnvValue(process.env.CLOUDINARY_API_KEY) &&
+      cleanEnvValue(process.env.CLOUDINARY_API_SECRET)
   );
 }
 
@@ -39,16 +43,16 @@ function createCloudinarySignature(params: Record<string, string>, apiSecret: st
 }
 
 async function uploadToCloudinary(file: File) {
-  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-  const apiKey = process.env.CLOUDINARY_API_KEY;
-  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+  const cloudName = cleanEnvValue(process.env.CLOUDINARY_CLOUD_NAME);
+  const apiKey = cleanEnvValue(process.env.CLOUDINARY_API_KEY);
+  const apiSecret = cleanEnvValue(process.env.CLOUDINARY_API_SECRET);
 
   if (!cloudName || !apiKey || !apiSecret) {
     throw new Error("Thiếu cấu hình Cloudinary.");
   }
 
   const timestamp = Math.floor(Date.now() / 1000).toString();
-  const folder = process.env.CLOUDINARY_UPLOAD_FOLDER || "web-truyen/covers";
+  const folder = cleanEnvValue(process.env.CLOUDINARY_UPLOAD_FOLDER) || "web-truyen/covers";
   const publicId = `${Date.now()}-${randomUUID()}`;
   const signature = createCloudinarySignature(
     {
