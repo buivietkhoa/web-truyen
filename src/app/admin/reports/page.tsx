@@ -41,8 +41,9 @@ export default async function AdminReportsPage() {
     }),
     (db as any).dailyView
       ? (db as any).dailyView.findMany({ where: { date: { gte: thirtyDaysAgo } }, orderBy: { date: "asc" } })
-      : Promise.resolve([]),
+      : Promise.resolve([] as { date: Date; count: number }[]),
   ]);
+  const dailyViews30Typed = dailyViews30 as { date: Date; count: number }[];
 
   const totalViews = totalViewsAgg._sum.views ?? 0;
 
@@ -50,7 +51,7 @@ export default async function AdminReportsPage() {
   const chartData: { label: string; count: number }[] = Array.from({ length: 30 }, (_, i) => {
     const d = new Date(thirtyDaysAgo);
     d.setDate(thirtyDaysAgo.getDate() + i);
-    const entry = dailyViews30.find((v) => v.date.getTime() === d.getTime());
+    const entry = dailyViews30Typed.find((v) => v.date.getTime() === d.getTime());
     return {
       label: `${d.getDate()}/${d.getMonth() + 1}`,
       count: entry?.count ?? 0,
