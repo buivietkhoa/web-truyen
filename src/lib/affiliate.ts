@@ -14,13 +14,38 @@ export const defaultAffiliateSetting = {
 };
 
 export async function getAffiliateSetting() {
-  if (!("affiliateSetting" in db)) {
-    return null;
-  }
+  return db.affiliateSetting.findFirst({ orderBy: { updatedAt: "desc" } });
+}
 
-  return db.affiliateSetting.findFirst({
-    orderBy: {
-      updatedAt: "desc",
+export async function getAffiliateProducts() {
+  return db.affiliateProduct.findMany({ orderBy: { updatedAt: "desc" } });
+}
+
+export async function getRandomAffiliateGateSetting() {
+  const setting = await getAffiliateSetting();
+
+  if (!setting?.enabled) return null;
+
+  const products = await db.affiliateProduct.findMany({
+    where: { enabled: true },
+    select: {
+      affiliateUrl: true,
+      title: true,
+      description: true,
+      imageUrl: true,
     },
   });
+
+  if (products.length === 0) return null;
+
+  const product = products[Math.floor(Math.random() * products.length)];
+
+  return {
+    affiliateUrl: product.affiliateUrl,
+    title: product.title,
+    description: product.description,
+    bannerImage: product.imageUrl,
+    waitSeconds: setting.waitSeconds,
+    effect: setting.effect,
+  };
 }

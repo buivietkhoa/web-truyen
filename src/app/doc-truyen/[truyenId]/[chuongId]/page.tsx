@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FaArrowLeft, FaArrowRight, FaBookOpen } from "react-icons/fa";
-import AffiliateGateModal from "@/components/affiliate/AffiliateGateModal";
+import AffiliateContentGate from "@/components/affiliate/AffiliateContentGate";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
 import ChapterSelect from "@/components/reader/ChapterSelect";
 import ReaderToolbar from "@/components/reader/ReaderToolbar";
-import { getAffiliateSetting } from "@/lib/affiliate";
+import ViewTracker from "@/components/reader/ViewTracker";
+import { getRandomAffiliateGateSetting } from "@/lib/affiliate";
 import { db } from "@/lib/db";
 
 interface Props {
@@ -74,26 +75,11 @@ export default async function DocTruyenPage({ params }: Props) {
   }
 
   const { story, chapter, prevChapter, nextChapter } = data;
-  const affiliateSetting = await getAffiliateSetting();
-  const affiliateModalSetting = affiliateSetting?.enabled &&
-    affiliateSetting.affiliateUrl &&
-    affiliateSetting.buttonText &&
-    affiliateSetting.title
-    ? {
-        affiliateUrl: affiliateSetting.affiliateUrl,
-        buttonText: affiliateSetting.buttonText,
-        title: affiliateSetting.title,
-        description: affiliateSetting.description,
-        bannerImage: affiliateSetting.bannerImage,
-        buttonColor: affiliateSetting.buttonColor,
-        waitSeconds: affiliateSetting.waitSeconds,
-        fontSize: affiliateSetting.fontSize,
-        effect: affiliateSetting.effect,
-      }
-    : null;
+  const affiliateModalSetting = await getRandomAffiliateGateSetting();
 
   return (
     <>
+      <ViewTracker storyId={story.id} />
       <SiteHeader />
 
       <ReaderToolbar>
@@ -139,9 +125,11 @@ export default async function DocTruyenPage({ params }: Props) {
               )}
             </div>
 
-            <section
-              className="reader-content"
-              dangerouslySetInnerHTML={{ __html: chapter.content }}
+            <AffiliateContentGate
+              content={chapter.content}
+              chapterId={chapter.id}
+              chapterNumber={chapter.number}
+              setting={affiliateModalSetting}
             />
 
             <div className="reader-nav reader-nav-bottom">
@@ -168,13 +156,6 @@ export default async function DocTruyenPage({ params }: Props) {
           </article>
         </main>
       </ReaderToolbar>
-
-      {affiliateModalSetting && (
-        <AffiliateGateModal
-          chapterId={chapter.id}
-          setting={affiliateModalSetting}
-        />
-      )}
 
       <SiteFooter />
     </>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import AdminAffiliateForm from "@/components/admin/AdminAffiliateForm";
-import { defaultAffiliateSetting, getAffiliateSetting } from "@/lib/affiliate";
+import { defaultAffiliateSetting, getAffiliateProducts, getAffiliateSetting } from "@/lib/affiliate";
 
 export const metadata: Metadata = {
   title: "Cấu hình Affiliate - Mọt Admin",
@@ -8,13 +8,14 @@ export const metadata: Metadata = {
 
 export default async function AdminAffiliatePage() {
   const setting = await getAffiliateSetting();
+  const products = await getAffiliateProducts();
 
   return (
     <div className="admin-page">
       <section className="admin-hero">
         <div>
-          <h2>Cấu hình Affiliate Marketing</h2>
-          <p>Quản lý link affiliate, banner và modal hiển thị trong trang đọc truyện.</p>
+          <h2>Cấu hình Affiliate</h2>
+          <p>Thiết lập quảng cáo và modal gate hiển thị khi người đọc mở chương truyện.</p>
         </div>
       </section>
 
@@ -31,6 +32,14 @@ export default async function AdminAffiliatePage() {
           effect: setting?.effect || defaultAffiliateSetting.effect,
           enabled: setting?.enabled ?? defaultAffiliateSetting.enabled,
         }}
+        initialProducts={products.map((product) => ({
+          id: product.id,
+          title: product.title,
+          description: product.description,
+          affiliateUrl: product.affiliateUrl,
+          imageUrl: product.imageUrl,
+          enabled: product.enabled,
+        }))}
       />
     </div>
   );

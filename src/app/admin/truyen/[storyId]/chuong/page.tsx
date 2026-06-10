@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AdminChapterForm from "@/components/admin/AdminChapterForm";
+import AdminDeleteChapterButton from "@/components/admin/AdminDeleteChapterButton";
+import AdminEditChapterModal from "@/components/admin/AdminEditChapterModal";
 import { db } from "@/lib/db";
 
 interface Props {
@@ -119,7 +121,17 @@ export default async function AdminStoryChaptersPage({ params }: Props) {
                     <td>{chapter.createdAt.toLocaleDateString("vi-VN")}</td>
                     <td>{chapter.updatedAt.toLocaleDateString("vi-VN")}</td>
                     <td>
-                      <Link href={`/doc-truyen/${story.slug}/${chapter.id}`}>Đọc</Link>
+                      <div className="admin-chapter-actions">
+                        <AdminEditChapterModal chapter={{
+                          id: chapter.id,
+                          storyId: story.id,
+                          number: chapter.number,
+                          title: chapter.title,
+                          content: chapter.content,
+                        }} />
+                        <Link className="admin-chapter-action read" href={`/doc-truyen/${story.slug}/${chapter.id}`}>Đọc</Link>
+                        <AdminDeleteChapterButton storyId={story.id} chapterId={chapter.id} chapterNumber={chapter.number} />
+                      </div>
                     </td>
                   </tr>
                 ))}

@@ -16,6 +16,10 @@ interface HeroSliderProps {
   stories: HeroStory[];
 }
 
+function stripHtml(html: string) {
+  return html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+
 export default function HeroSlider({ stories }: HeroSliderProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -82,7 +86,7 @@ export default function HeroSlider({ stories }: HeroSliderProps) {
       <div className="hero-slider-content">
         <span className="hot-badge">{activeSlide.category}</span>
         <h1>{activeSlide.title}</h1>
-        <p>{activeSlide.description}</p>
+        <p>{stripHtml(activeSlide.description)}</p>
 
         <div className="hero-actions">
           <Link href={detailUrl} className="btn btn-primary">

@@ -8,6 +8,62 @@ interface Props {
   }>;
 }
 
+const allowedStatuses = new Set(["Đang ra", "Hoàn thành", "Tạm ngưng"]);
+
+function isValidCoverImage(value: string) {
+  if (value.startsWith("/uploads/")) return true;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+export async function PATCH(request: Request, { params }: Props) {
+  const admin = await getAdminUser();
+  if (!admin) {
+    return NextResponse.json({ message: "Bạn không có quyền quản trị." }, { status: 403 });
+  }
+
+  try {
+    const { storyId } = await params;
+    const body = await request.json();
+
+    const title = typeof body.title === "string" ? body.title.trim() : undefined;
+    const category = typeof body.category === "string" ? body.category.trim() : undefined;
+    const status = typeof body.status === "string" ? body.status.trim() : undefined;
+    const coverImage = typeof body.coverImage === "string" ? body.coverImage.trim() : undefined;
+    const description = typeof body.description === "string" ? body.description.trim() : undefined;
+
+    if (title !== undefined && !title) {
+      return NextResponse.json({ message: "Tên truyện không được để trống." }, { status: 400 });
+    }
+    if (status !== undefined && !allowedStatuses.has(status)) {
+      return NextResponse.json({ message: "Trạng thái không hợp lệ." }, { status: 400 });
+    }
+    if (coverImage !== undefined && !isValidCoverImage(coverImage)) {
+      return NextResponse.json({ message: "Ảnh bìa không hợp lệ." }, { status: 400 });
+    }
+
+    const story = await db.story.update({
+      where: { id: storyId },
+      data: {
+        ...(title !== undefined && { title }),
+        ...(category !== undefined && { category }),
+        ...(status !== undefined && { status }),
+        ...(coverImage !== undefined && { coverImage }),
+        ...(description !== undefined && { description }),
+      },
+    });
+
+    return NextResponse.json({ message: "Cập nhật truyện thành công.", story });
+  } catch (error) {
+    console.error("ADMIN_PATCH_STORY_ERROR", error);
+    return NextResponse.json({ message: "Lỗi server khi cập nhật truyện." }, { status: 500 });
+  }
+}
+
 export async function DELETE(_request: Request, { params }: Props) {
   const admin = await getAdminUser();
 

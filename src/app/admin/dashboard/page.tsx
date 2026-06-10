@@ -49,8 +49,27 @@ export default async function AdminDashboardPage() {
     }),
   ]);
 
-  const chartValues = [42, 56, 78, 49, 86, 64, 92];
-  const maxChartValue = Math.max(...chartValues);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const sevenDaysAgo = new Date(today);
+  sevenDaysAgo.setDate(today.getDate() - 6);
+
+  const dbAny = db as any;
+  const dailyViews: { date: Date; count: number }[] = dbAny.dailyView
+    ? await dbAny.dailyView.findMany({ where: { date: { gte: sevenDaysAgo } } })
+    : [];
+
+  const dayNames = ["CN", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"];
+  const chartDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(sevenDaysAgo);
+    d.setDate(sevenDaysAgo.getDate() + i);
+    return d;
+  });
+  const chartValues = chartDays.map((d) => {
+    const entry = dailyViews.find((v) => v.date.getTime() === d.getTime());
+    return entry?.count ?? 0;
+  });
+  const maxChartValue = Math.max(...chartValues, 1);
   const recentActivities = [
     ...recentStories.map((story) => ({
       title: `Thêm truyện: ${story.title}`,
@@ -112,12 +131,12 @@ export default async function AdminDashboardPage() {
           </div>
 
           <div className="admin-bar-chart" aria-label="Biểu đồ lượt xem">
-            {chartValues.map((value, index) => (
+            {chartDays.map((day, index) => (
               <div className="admin-bar-item" key={index}>
                 <div className="admin-bar-track">
-                  <span style={{ height: `${Math.round((value / maxChartValue) * 100)}%` }} />
+                  <span style={{ height: `${Math.round((chartValues[index] / maxChartValue) * 100)}%` }} />
                 </div>
-                <small>{["Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7", "CN"][index]}</small>
+                <small>{dayNames[day.getDay()]}</small>
               </div>
             ))}
           </div>

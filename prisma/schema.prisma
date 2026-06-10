@@ -99,3 +99,32 @@ model AffiliateSetting {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
+model AffiliateProduct {
+  id           String   @id @default(cuid())
+  title        String
+  description  String
+  affiliateUrl String
+  imageUrl     String
+  enabled      Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model DailyView {
+  id    String   @id @default(cuid())
+  date  DateTime
+  count Int      @default(0)
+
+  @@unique([date])
+}
+
+model SiteSetting {
+  id           String @id @default(cuid())
+  siteName     String @default("Mọt Chạm")
+  siteDesc     String @default("Website đọc truyện online")
+  logoUrl      String @default("")
+  primaryColor String @default("#2563eb")
+  contactEmail String @default("")
+  footerText   String @default("")
+}

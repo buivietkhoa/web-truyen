@@ -68,9 +68,11 @@ export default async function AdminUsersPage() {
             <tbody>
               {users.map((user) => (
                 <tr key={user.id}>
-                  <td>
-                    <strong>{user.name}</strong>
-                    <span>{user.email}</span>
+                  <td data-initial={user.name.charAt(0).toUpperCase()}>
+                    <div>
+                      <strong>{user.name}</strong>
+                      <span>{user.email}</span>
+                    </div>
                   </td>
                   <td>
                     <span className={`admin-role-pill ${user.role === "ADMIN" ? "admin" : "user"}`}>

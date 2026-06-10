@@ -1,24 +1,36 @@
 import type { Metadata } from "next";
+import AdminSettingsForm from "@/components/admin/AdminSettingsForm";
+import { db } from "@/lib/db";
 
 export const metadata: Metadata = {
   title: "Cài đặt - Mọt Admin",
 };
 
-export default function AdminSettingsPage() {
+const defaultSetting = {
+  siteName: "Mọt Chạm",
+  siteDesc: "Website đọc truyện online",
+  logoUrl: "",
+  primaryColor: "#2563eb",
+  contactEmail: "",
+  footerText: "",
+};
+
+export default async function AdminSettingsPage() {
+  const dbAny = db as any;
+  const list = dbAny.siteSetting ? await dbAny.siteSetting.findMany({ take: 1 }) : [];
+  const setting = list[0] ?? defaultSetting;
+
   return (
-    <div className="admin-page">
+    <div className="admin-settings-page">
       <section className="admin-hero">
         <div>
           <h2>Cài đặt</h2>
-          <p>Khu vực cấu hình hệ thống, hiển thị website và thiết lập quản trị.</p>
+          <p>Cấu hình tên website, logo, màu sắc và thông tin chung.</p>
         </div>
       </section>
 
       <section className="admin-panel">
-        <div className="admin-empty">
-          <h3>Chưa có cấu hình riêng</h3>
-          <p>Các thiết lập như logo, tên website và chính sách hiển thị có thể thêm ở bước tiếp theo.</p>
-        </div>
+        <AdminSettingsForm initialSetting={setting} />
       </section>
     </div>
   );
