@@ -4,7 +4,11 @@ import { notFound } from "next/navigation";
 import { FaBookOpen, FaEye, FaStar } from "react-icons/fa";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
+import FavoriteButton from "@/components/story/FavoriteButton";
+import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { sanitizeRichContent } from "@/lib/sanitize-content";
+import { getSiteSetting } from "@/lib/site-settings";
 
 interface Props {
   params: Promise<{
@@ -22,6 +26,7 @@ function stripHtml(value: string) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
+  const siteSetting = await getSiteSetting();
   const story = await db.story.findUnique({
     where: {
       slug: id,
@@ -30,17 +35,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!story) {
     return {
-      title: "Không tìm thấy truyện - Mọt Chạm",
+      title: `Không tìm thấy truyện - ${siteSetting.siteName}`,
     };
   }
 
   const description = stripHtml(story.description);
 
   return {
-    title: `${story.title} - Mọt Chạm`,
+    title: `${story.title} - ${siteSetting.siteName}`,
     description,
     openGraph: {
-      title: `${story.title} - Mọt Chạm`,
+      title: `${story.title} - ${siteSetting.siteName}`,
       description,
       images: [story.coverImage],
     },
@@ -49,6 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ChiTietTruyenPage({ params }: Props) {
   const { id } = await params;
+  const currentUser = await getCurrentUser();
   const story = await db.story.findUnique({
     where: {
       slug: id,
@@ -81,6 +87,12 @@ export default async function ChiTietTruyenPage({ params }: Props) {
 
   const firstChapter = story.chapters[0];
   const latestChapter = story.chapters.at(-1);
+  const favorite = currentUser
+    ? await db.favorite.findUnique({
+        where: { userId_storyId: { userId: currentUser.id, storyId: story.id } },
+        select: { id: true },
+      })
+    : null;
 
   return (
     <>
@@ -134,13 +146,19 @@ export default async function ChiTietTruyenPage({ params }: Props) {
                     Mới nhất: Chương {latestChapter.number}
                   </Link>
                 )}
+
+                <FavoriteButton
+                  storyId={story.id}
+                  initialFavorite={Boolean(favorite)}
+                  isLoggedIn={Boolean(currentUser)}
+                />
               </div>
 
               <div className="story-summary">
                 <h2>Tóm tắt nội dung</h2>
                 <div
                   className="story-summary-content"
-                  dangerouslySetInnerHTML={{ __html: story.description }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeRichContent(story.description) }}
                 />
               </div>
             </div>

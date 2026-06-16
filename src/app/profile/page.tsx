@@ -5,6 +5,8 @@ import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
 import { FaBookOpen, FaEdit, FaHeart, FaRegUserCircle, FaUser } from "react-icons/fa";
 import ReadingHistoryModal from "@/components/profile/ReadingHistoryModal";
+import type { ReadingHistoryItem } from "@/components/profile/ReadingHistoryModal";
+import ProfileLogoutButton from "@/components/profile/ProfileLogoutButton";
 import UpdateProfileModal from "@/components/profile/UpdateProfileModal";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -24,7 +26,7 @@ export default async function ProfilePage() {
     redirect("/dang-nhap");
   }
 
-  const [user, readingCount, favoriteCount, favoriteStories] = await Promise.all([
+  const [user, readingHistories, favoriteCount, favoriteStories] = await Promise.all([
     db.user.findUnique({
       where: {
         id: currentUser.id,
@@ -38,9 +40,15 @@ export default async function ProfilePage() {
         createdAt: true,
       },
     }),
-    db.readingHistory.count({
+    db.readingHistory.findMany({
       where: {
         userId: currentUser.id,
+      },
+      orderBy: { updatedAt: "desc" },
+      take: 20,
+      include: {
+        story: { select: { slug: true, title: true } },
+        chapter: { select: { id: true, number: true, title: true } },
       },
     }),
     db.favorite.count({
@@ -75,8 +83,28 @@ export default async function ProfilePage() {
     redirect("/dang-nhap");
   }
 
+  const historyItems: ReadingHistoryItem[] = readingHistories.map((history) => {
+    const elapsedDays = Math.max(
+      0,
+      Math.round((Date.now() - history.updatedAt.getTime()) / 86_400_000)
+    );
+
+    return {
+      storyId: history.storyId,
+      title: history.story.title,
+      chapter: history.chapter
+        ? `Chương ${history.chapter.number}: ${history.chapter.title}`
+        : "Chương đã đọc",
+      time: new Intl.RelativeTimeFormat("vi", { numeric: "auto" }).format(-elapsedDays, "day"),
+      progress: history.progress,
+      href: history.chapter
+        ? `/doc-truyen/${history.story.slug}/${history.chapter.id}`
+        : `/truyen/${history.story.slug}`,
+    };
+  });
+
   const profileStats = [
-    { label: "Truyện đã đọc", value: readingCount.toString(), icon: <FaBookOpen /> },
+    { label: "Truyện đã đọc", value: readingHistories.length.toString(), icon: <FaBookOpen /> },
     { label: "Truyện yêu thích", value: favoriteCount.toString(), icon: <FaHeart /> },
     { label: "Ngày tham gia", value: formatJoinDate(user.createdAt), icon: <FaRegUserCircle /> },
   ];
@@ -105,7 +133,8 @@ export default async function ProfilePage() {
 
             <nav className="profile-menu">
               <Link href="/profile" className="active"><FaUser /> Hồ sơ cá nhân</Link>
-              <ReadingHistoryModal />
+              <ReadingHistoryModal histories={historyItems} />
+              <ProfileLogoutButton />
             </nav>
           </aside>
 

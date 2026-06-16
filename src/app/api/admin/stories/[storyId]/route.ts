@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminUser } from "@/lib/admin";
 import { db } from "@/lib/db";
+import { sanitizeRichContent } from "@/lib/sanitize-content";
 
 interface Props {
   params: Promise<{
@@ -34,7 +35,9 @@ export async function PATCH(request: Request, { params }: Props) {
     const category = typeof body.category === "string" ? body.category.trim() : undefined;
     const status = typeof body.status === "string" ? body.status.trim() : undefined;
     const coverImage = typeof body.coverImage === "string" ? body.coverImage.trim() : undefined;
-    const description = typeof body.description === "string" ? body.description.trim() : undefined;
+    const description = typeof body.description === "string"
+      ? sanitizeRichContent(body.description)
+      : undefined;
 
     if (title !== undefined && !title) {
       return NextResponse.json({ message: "Tên truyện không được để trống." }, { status: 400 });

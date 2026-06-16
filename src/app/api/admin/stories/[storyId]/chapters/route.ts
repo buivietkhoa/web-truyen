@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminUser } from "@/lib/admin";
 import { db } from "@/lib/db";
+import { sanitizeRichContent } from "@/lib/sanitize-content";
 
 interface Props {
   params: Promise<{
@@ -22,7 +23,9 @@ export async function POST(request: Request, { params }: Props) {
     const { storyId } = await params;
     const body = await request.json();
     const title = typeof body.title === "string" ? body.title.trim() : "";
-    const content = typeof body.content === "string" ? body.content.trim() : "";
+    const content = typeof body.content === "string"
+      ? sanitizeRichContent(body.content)
+      : "";
     const requestedNumber = Number(body.number);
 
     if (!title || !content) {

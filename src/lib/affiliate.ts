@@ -29,6 +29,7 @@ export async function getRandomAffiliateGateSetting() {
   const products = await db.affiliateProduct.findMany({
     where: { enabled: true },
     select: {
+      id: true,
       affiliateUrl: true,
       title: true,
       description: true,
@@ -41,6 +42,7 @@ export async function getRandomAffiliateGateSetting() {
   const product = products[Math.floor(Math.random() * products.length)];
 
   return {
+    productId: product.id,
     affiliateUrl: product.affiliateUrl,
     title: product.title,
     description: product.description,

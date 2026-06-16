@@ -1,19 +1,19 @@
 import Link from "next/link";
 import { FaFacebookF, FaInstagram, FaTiktok } from "react-icons/fa";
+import { getSiteSetting } from "@/lib/site-settings";
 
-export default function SiteFooter() {
+export default async function SiteFooter() {
+  const setting = await getSiteSetting();
+
   return (
     <footer className="site-footer">
       <div className="container">
         <div className="footer-main">
           <div className="footer-brand">
             <Link href="/" className="footer-logo">
-              Mọt Chạm
+              {setting.siteName}
             </Link>
-            <p>
-              Không gian đọc truyện nhẹ nhàng, cập nhật các bộ truyện được yêu
-              thích và gợi ý nội dung phù hợp cho từng độc giả.
-            </p>
+            <p>{setting.siteDesc}</p>
             <div className="footer-socials">
               <Link href="/" aria-label="Facebook">
                 <FaFacebookF />
@@ -48,6 +48,7 @@ export default function SiteFooter() {
             </p>
           </div>
         </div>
+        {setting.footerText && <p className="footer-custom-text">{setting.footerText}</p>}
       </div>
     </footer>
   );

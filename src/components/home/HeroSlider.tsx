@@ -55,6 +55,12 @@ export default function HeroSlider({ stories }: HeroSliderProps) {
       className="hero-slider"
       style={{ backgroundImage: `url(${activeSlide.coverImage})` }}
     >
+      <img
+        className="hero-slider-image"
+        src={activeSlide.coverImage}
+        alt=""
+        aria-hidden="true"
+      />
       <Link
         href={detailUrl}
         className="hero-slide-link"

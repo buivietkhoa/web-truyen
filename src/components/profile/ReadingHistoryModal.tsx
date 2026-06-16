@@ -4,38 +4,20 @@ import { useState } from "react";
 import Link from "next/link";
 import { FaHistory, FaTimes } from "react-icons/fa";
 
-const readingHistory = [
-  {
-    title: "Thần Đạo Đan Tôn",
-    chapter: "Chương 1245",
-    time: "Đọc 12 phút trước",
-    progress: "24%",
-    href: "/truyen/than-dao-dan-ton",
-  },
-  {
-    title: "Phàm Nhân Tu Tiên",
-    chapter: "Chương 156",
-    time: "Đọc hôm qua",
-    progress: "8%",
-    href: "/truyen/pham-nhan-tu-tien",
-  },
-  {
-    title: "Vũ Luyện Điên Phong",
-    chapter: "Chương 82",
-    time: "Đọc 2 ngày trước",
-    progress: "15%",
-    href: "/truyen/vu-luyen-dien-phong",
-  },
-  {
-    title: "Tuyệt Thế Đường Môn",
-    chapter: "Chương 38",
-    time: "Đọc tuần trước",
-    progress: "41%",
-    href: "/truyen/tuyet-the-duong-mon",
-  },
-];
+export interface ReadingHistoryItem {
+  storyId: string;
+  title: string;
+  chapter: string;
+  time: string;
+  progress: number;
+  href: string;
+}
 
-export default function ReadingHistoryModal() {
+interface ReadingHistoryModalProps {
+  histories: ReadingHistoryItem[];
+}
+
+export default function ReadingHistoryModal({ histories }: ReadingHistoryModalProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -64,16 +46,22 @@ export default function ReadingHistoryModal() {
             </div>
 
             <div className="reading-history-list">
-              {readingHistory.map((item) => (
-                <Link href={item.href} className="reading-history-item" key={item.title}>
-                  <div>
-                    <h3>{item.title}</h3>
-                    <p>{item.chapter} - {item.time}</p>
-                  </div>
-
-                  <span className="reading-progress">{item.progress}</span>
-                </Link>
-              ))}
+              {histories.length === 0 ? (
+                <div className="reading-history-empty">
+                  <h3>Chưa có lịch sử đọc</h3>
+                  <p>Lịch sử sẽ được lưu khi bạn đăng nhập và mở một chương truyện.</p>
+                </div>
+              ) : (
+                histories.map((item) => (
+                  <Link href={item.href} className="reading-history-item" key={item.storyId}>
+                    <div>
+                      <h3>{item.title}</h3>
+                      <p>{item.chapter} - {item.time}</p>
+                    </div>
+                    <span className="reading-progress">{item.progress}%</span>
+                  </Link>
+                ))
+              )}
             </div>
           </section>
         </div>

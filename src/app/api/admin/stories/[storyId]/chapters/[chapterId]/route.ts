@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminUser } from "@/lib/admin";
 import { db } from "@/lib/db";
+import { sanitizeRichContent } from "@/lib/sanitize-content";
 
 interface Props {
   params: Promise<{
@@ -20,7 +21,9 @@ export async function PATCH(request: Request, { params }: Props) {
     const body = await request.json();
 
     const title = typeof body.title === "string" ? body.title.trim() : undefined;
-    const content = typeof body.content === "string" ? body.content.trim() : undefined;
+    const content = typeof body.content === "string"
+      ? sanitizeRichContent(body.content)
+      : undefined;
     const number = typeof body.number === "number" ? body.number : undefined;
 
     if (title !== undefined && !title) {

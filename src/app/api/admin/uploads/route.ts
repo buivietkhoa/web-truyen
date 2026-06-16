@@ -188,7 +188,20 @@ export async function POST(request: Request) {
       );
     }
 
-    const uploadedImage = hasCloudinaryConfig()
+    const cloudinaryConfigured = hasCloudinaryConfig();
+    const canUseLocalStorage = process.env.NODE_ENV !== "production" && !process.env.VERCEL;
+
+    if (!cloudinaryConfigured && !canUseLocalStorage) {
+      return NextResponse.json(
+        {
+          message:
+            "Thiếu cấu hình Cloudinary. Hãy thêm CLOUDINARY_CLOUD_NAME và CLOUDINARY_UPLOAD_PRESET trên Vercel.",
+        },
+        { status: 503 }
+      );
+    }
+
+    const uploadedImage = cloudinaryConfigured
       ? await uploadToCloudinary(file)
       : await uploadToLocal(file, extension);
 

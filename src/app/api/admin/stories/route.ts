@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminUser } from "@/lib/admin";
 import { db } from "@/lib/db";
+import { sanitizeRichContent } from "@/lib/sanitize-content";
 import { createSlug } from "@/lib/slug";
 
 const allowedStatuses = new Set(["Đang ra", "Hoàn thành", "Tạm ngưng"]);
@@ -34,7 +35,9 @@ export async function POST(request: Request) {
     const category = typeof body.category === "string" ? body.category.trim() : "";
     const status = typeof body.status === "string" ? body.status.trim() : "Đang ra";
     const coverImage = typeof body.coverImage === "string" ? body.coverImage.trim() : "";
-    const description = typeof body.description === "string" ? body.description.trim() : "";
+    const description = typeof body.description === "string"
+      ? sanitizeRichContent(body.description)
+      : "";
     const customSlug = typeof body.slug === "string" ? body.slug.trim() : "";
     const slug = createSlug(customSlug || title);
 

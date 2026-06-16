@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FaArrowLeft, FaArrowRight, FaBookOpen } from "react-icons/fa";
@@ -6,10 +7,17 @@ import AffiliateContentGate from "@/components/affiliate/AffiliateContentGate";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
 import ChapterSelect from "@/components/reader/ChapterSelect";
+import ReadingHistoryTracker from "@/components/reader/ReadingHistoryTracker";
 import ReaderToolbar from "@/components/reader/ReaderToolbar";
 import ViewTracker from "@/components/reader/ViewTracker";
 import { getRandomAffiliateGateSetting } from "@/lib/affiliate";
+import {
+  affiliateUnlockCookieName,
+  verifyAffiliateUnlockToken,
+} from "@/lib/affiliate-unlock";
 import { db } from "@/lib/db";
+import { sanitizeRichContent } from "@/lib/sanitize-content";
+import { getSiteSetting } from "@/lib/site-settings";
 
 interface Props {
   params: Promise<{
@@ -53,16 +61,17 @@ async function getReaderData(truyenId: string, chuongId: string) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { truyenId, chuongId } = await params;
   const data = await getReaderData(truyenId, chuongId);
+  const siteSetting = await getSiteSetting();
 
   if (!data) {
     return {
-      title: "Không tìm thấy chương - Mọt Chạm",
+      title: `Không tìm thấy chương - ${siteSetting.siteName}`,
     };
   }
 
   return {
     title: `Chương ${data.chapter.number}: ${data.chapter.title} - ${data.story.title}`,
-    description: `Đọc chương ${data.chapter.number} của truyện ${data.story.title} trên Mọt Chạm.`,
+    description: `Đọc chương ${data.chapter.number} của truyện ${data.story.title} trên ${siteSetting.siteName}.`,
   };
 }
 
@@ -76,10 +85,20 @@ export default async function DocTruyenPage({ params }: Props) {
 
   const { story, chapter, prevChapter, nextChapter } = data;
   const affiliateModalSetting = await getRandomAffiliateGateSetting();
+  const requiresAffiliateGate = affiliateModalSetting !== null && chapter.number > 1;
+  const cookieStore = await cookies();
+  const hasServerUnlock = verifyAffiliateUnlockToken(
+    cookieStore.get(affiliateUnlockCookieName)?.value,
+    chapter.id
+  );
+  const visibleContent = !requiresAffiliateGate || hasServerUnlock
+    ? sanitizeRichContent(chapter.content)
+    : null;
 
   return (
     <>
       <ViewTracker storyId={story.id} />
+      <ReadingHistoryTracker storyId={story.id} chapterId={chapter.id} />
       <SiteHeader />
 
       <ReaderToolbar>
@@ -101,7 +120,7 @@ export default async function DocTruyenPage({ params }: Props) {
               <span>{story.title}</span>
             </header>
 
-            <ChapterSelect truyenId={story.slug} chuongs={story.chapters} currentChapterId={chapter.id} />
+            <ChapterSelect truyenId={story.slug} chuongs={story.chapters.map(({ id, title, number }) => ({ id, title, number }))} currentChapterId={chapter.id} />
 
             <div className="reader-nav">
               {prevChapter ? (
@@ -126,7 +145,7 @@ export default async function DocTruyenPage({ params }: Props) {
             </div>
 
             <AffiliateContentGate
-              content={chapter.content}
+              content={visibleContent}
               chapterId={chapter.id}
               chapterNumber={chapter.number}
               setting={affiliateModalSetting}

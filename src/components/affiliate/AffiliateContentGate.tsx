@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { FaLock, FaTimes } from "react-icons/fa";
 
 interface AffiliateSetting {
+  productId: string;
   affiliateUrl: string;
   title: string;
   description: string;
@@ -13,7 +15,7 @@ interface AffiliateSetting {
 }
 
 interface Props {
-  content: string;
+  content: string | null;
   chapterId: string;
   chapterNumber: number;
   freeChapters?: number;
@@ -38,22 +40,17 @@ export default function AffiliateContentGate({
   freeChapters = 1,
   setting,
 }: Props) {
+  const router = useRouter();
   const requiresGate = setting !== null && chapterNumber > freeChapters;
-  const storageKey = useMemo(() => `aff-unlocked:${chapterId}`, [chapterId]);
   const displayUrl = useMemo(
     () => createDisplayUrl(setting?.affiliateUrl || ""),
     [setting?.affiliateUrl]
   );
 
-  const [unlocked, setUnlocked] = useState(() => {
-    if (typeof window === "undefined" || !requiresGate) {
-      return false;
-    }
-
-    return window.sessionStorage.getItem(storageKey) === "1";
-  });
   const [modalOpen, setModalOpen] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(setting?.waitSeconds ?? 0);
+  const [unlocking, setUnlocking] = useState(false);
+  const unlocked = !requiresGate || content !== null;
 
   useEffect(() => {
     if (!requiresGate || unlocked) {
@@ -84,26 +81,36 @@ export default function AffiliateContentGate({
     };
   }, [modalOpen]);
 
-  const unlock = () => {
-    window.sessionStorage.setItem(storageKey, "1");
-    setUnlocked(true);
-    setModalOpen(false);
-  };
-
   const openModal = () => {
     setSecondsLeft(setting?.waitSeconds ?? 0);
     setModalOpen(true);
   };
 
-  const handleAffiliateClick = () => {
-    unlock();
+  const handleAffiliateClick = async () => {
+    if (!setting || unlocking) return;
+    setUnlocking(true);
+
+    try {
+      const response = await fetch("/api/affiliate/unlock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chapterId, productId: setting.productId }),
+        keepalive: true,
+      });
+
+      if (!response.ok) return;
+      setModalOpen(false);
+      router.refresh();
+    } finally {
+      setUnlocking(false);
+    }
   };
 
   if (!requiresGate || unlocked) {
     return (
       <section
         className="reader-content"
-        dangerouslySetInnerHTML={{ __html: content }}
+        dangerouslySetInnerHTML={{ __html: content || "" }}
       />
     );
   }

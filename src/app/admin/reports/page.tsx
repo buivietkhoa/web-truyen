@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { FaBookOpen, FaChartBar, FaEye, FaUsers } from "react-icons/fa";
+import { addUtcDays, getBangkokDateKey } from "@/lib/date";
 import { db } from "@/lib/db";
 
 export const metadata: Metadata = {
@@ -7,12 +8,8 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminReportsPage() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const thirtyDaysAgo = new Date(today);
-  thirtyDaysAgo.setDate(today.getDate() - 29);
-  const sevenDaysAgo = new Date(today);
-  sevenDaysAgo.setDate(today.getDate() - 6);
+  const today = getBangkokDateKey();
+  const thirtyDaysAgo = addUtcDays(today, -29);
 
   const [
     totalStories,
@@ -39,21 +36,20 @@ export default async function AdminReportsPage() {
       take: 5,
       select: { id: true, name: true, email: true, role: true, createdAt: true },
     }),
-    (db as any).dailyView
-      ? (db as any).dailyView.findMany({ where: { date: { gte: thirtyDaysAgo } }, orderBy: { date: "asc" } })
-      : Promise.resolve([] as { date: Date; count: number }[]),
+    db.dailyView.findMany({
+      where: { date: { gte: thirtyDaysAgo } },
+      orderBy: { date: "asc" },
+    }),
   ]);
-  const dailyViews30Typed = dailyViews30 as { date: Date; count: number }[];
 
   const totalViews = totalViewsAgg._sum.views ?? 0;
 
   // Build 30-day chart data
   const chartData: { label: string; count: number }[] = Array.from({ length: 30 }, (_, i) => {
-    const d = new Date(thirtyDaysAgo);
-    d.setDate(thirtyDaysAgo.getDate() + i);
-    const entry = dailyViews30Typed.find((v) => v.date.getTime() === d.getTime());
+    const d = addUtcDays(thirtyDaysAgo, i);
+    const entry = dailyViews30.find((v) => v.date.getTime() === d.getTime());
     return {
-      label: `${d.getDate()}/${d.getMonth() + 1}`,
+      label: `${d.getUTCDate()}/${d.getUTCMonth() + 1}`,
       count: entry?.count ?? 0,
     };
   });

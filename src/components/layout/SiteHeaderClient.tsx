@@ -5,9 +5,9 @@ import Link from "next/link";
 import {
   FaBars,
   FaBell,
-  FaRegUserCircle,
   FaSearch,
   FaTimes,
+  FaUser,
 } from "react-icons/fa";
 import { categories } from "@/data/categories";
 
@@ -16,23 +16,20 @@ export type ActivePage = "home" | "updates" | "profile";
 interface SiteHeaderClientProps {
   activePage?: ActivePage;
   initialUserName: string;
+  siteName: string;
+  logoUrl: string;
 }
 
-export default function SiteHeaderClient({ activePage, initialUserName }: SiteHeaderClientProps) {
+export default function SiteHeaderClient({
+  activePage,
+  initialUserName,
+  siteName,
+  logoUrl,
+}: SiteHeaderClientProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [userName, setUserName] = useState(initialUserName);
+  const userName = initialUserName;
 
   const closeMenu = () => setIsMenuOpen(false);
-
-  const handleLogout = async () => {
-    await fetch("/api/auth/logout", {
-      method: "POST",
-    });
-
-    setUserName("");
-    closeMenu();
-    window.location.href = "/dang-nhap";
-  };
 
   useEffect(() => {
     document.body.classList.toggle("menu-open", isMenuOpen);
@@ -44,8 +41,11 @@ export default function SiteHeaderClient({ activePage, initialUserName }: SiteHe
 
   return (
     <header className="site-header">
-      <div className="container d-flex align-items-center">
-        <Link href="/" className="brand" onClick={closeMenu}>Mọt Chạm</Link>
+      <div className="container header-inner d-flex align-items-center">
+        <Link href="/" className="brand" onClick={closeMenu}>
+          {logoUrl && <img src={logoUrl} alt="" className="site-brand-logo" />}
+          <span>{siteName}</span>
+        </Link>
 
         <nav className="main-nav">
           <Link href="/" className={activePage === "home" ? "active" : ""}>Trang chủ</Link>
@@ -65,25 +65,26 @@ export default function SiteHeaderClient({ activePage, initialUserName }: SiteHe
           <input name="q" placeholder="Tìm truyện..." />
         </form>
 
-        <FaBell className="header-icon" />
-        <Link
-          href="/profile"
-          className={`header-icon-link ${activePage === "profile" ? "active" : ""}`}
-          aria-label="Hồ sơ cá nhân"
-          title={userName || "Hồ sơ cá nhân"}
-        >
-          <FaRegUserCircle />
-        </Link>
+        <div className="header-actions">
+          <span className="header-icon" aria-label="Thông báo" title="Thông báo">
+            <FaBell />
+          </span>
 
-        {userName ? (
-          <button type="button" className="login-btn" onClick={handleLogout}>
-            Đăng xuất
-          </button>
-        ) : (
-          <Link href="/dang-nhap" className="login-btn">
-            Đăng nhập
-          </Link>
-        )}
+          {userName ? (
+            <Link
+              href="/profile"
+              className={`header-icon-link ${activePage === "profile" ? "active" : ""}`}
+              aria-label="Hồ sơ cá nhân"
+              title={userName}
+            >
+              <FaUser />
+            </Link>
+          ) : (
+            <Link href="/dang-nhap" className="login-btn">
+              Đăng nhập
+            </Link>
+          )}
+        </div>
 
         <button
           className="mobile-menu-toggle"
@@ -112,11 +113,10 @@ export default function SiteHeaderClient({ activePage, initialUserName }: SiteHe
         <nav>
           <Link href="/" onClick={closeMenu} className={activePage === "home" ? "active" : ""}>Trang chủ</Link>
           <Link href="/truyen" onClick={closeMenu} className={activePage === "updates" ? "active" : ""}>Mới cập nhật</Link>
-          <Link href="/profile" onClick={closeMenu} className={activePage === "profile" ? "active" : ""}>Hồ sơ cá nhân</Link>
           {userName ? (
-            <button type="button" onClick={handleLogout}>
-              Đăng xuất
-            </button>
+            <Link href="/profile" onClick={closeMenu} className={activePage === "profile" ? "active" : ""}>
+              Hồ sơ cá nhân
+            </Link>
           ) : (
             <Link href="/dang-nhap" onClick={closeMenu}>
               Đăng nhập

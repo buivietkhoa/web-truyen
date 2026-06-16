@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FaBookOpen, FaEye, FaPlus, FaUsers } from "react-icons/fa";
+import { addUtcDays, getBangkokDateKey } from "@/lib/date";
 import { db } from "@/lib/db";
 
 export const metadata: Metadata = {
@@ -49,21 +50,16 @@ export default async function AdminDashboardPage() {
     }),
   ]);
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const sevenDaysAgo = new Date(today);
-  sevenDaysAgo.setDate(today.getDate() - 6);
+  const today = getBangkokDateKey();
+  const sevenDaysAgo = addUtcDays(today, -6);
 
-  const dbAny = db as any;
-  const dailyViews: { date: Date; count: number }[] = dbAny.dailyView
-    ? await dbAny.dailyView.findMany({ where: { date: { gte: sevenDaysAgo } } })
-    : [];
+  const dailyViews = await db.dailyView.findMany({
+    where: { date: { gte: sevenDaysAgo } },
+  });
 
   const dayNames = ["CN", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"];
   const chartDays = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(sevenDaysAgo);
-    d.setDate(sevenDaysAgo.getDate() + i);
-    return d;
+    return addUtcDays(sevenDaysAgo, i);
   });
   const chartValues = chartDays.map((d) => {
     const entry = dailyViews.find((v) => v.date.getTime() === d.getTime());
@@ -136,7 +132,7 @@ export default async function AdminDashboardPage() {
                 <div className="admin-bar-track">
                   <span style={{ height: `${Math.round((chartValues[index] / maxChartValue) * 100)}%` }} />
                 </div>
-                <small>{dayNames[day.getDay()]}</small>
+                <small>{dayNames[day.getUTCDay()]}</small>
               </div>
             ))}
           </div>
