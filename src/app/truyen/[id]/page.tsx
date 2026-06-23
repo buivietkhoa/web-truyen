@@ -8,6 +8,7 @@ import FavoriteButton from "@/components/story/FavoriteButton";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { sanitizeRichContent } from "@/lib/sanitize-content";
+import { absoluteUrl, truncateMeta } from "@/lib/seo";
 import { getSiteSetting } from "@/lib/site-settings";
 
 interface Props {
@@ -16,35 +17,47 @@ interface Props {
   }>;
 }
 
-function stripHtml(value: string) {
-  return value
-    .replace(/<[^>]*>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const siteSetting = await getSiteSetting();
-  const story = await db.story.findUnique({
+  const story = await db.story.findFirst({
     where: {
       slug: id,
+      published: true,
     },
   });
 
   if (!story) {
     return {
       title: `Không tìm thấy truyện - ${siteSetting.siteName}`,
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
 
-  const description = stripHtml(story.description);
+  const description =
+    truncateMeta(story.description) ||
+    `Đọc ${story.title} mới nhất, cập nhật chương nhanh tại ${siteSetting.siteName}.`;
+  const url = absoluteUrl(`/truyen/${story.slug}`);
 
   return {
     title: `${story.title} - ${siteSetting.siteName}`,
     description,
+    alternates: {
+      canonical: url,
+    },
     openGraph: {
+      type: "article",
+      title: `${story.title} - ${siteSetting.siteName}`,
+      description,
+      url,
+      siteName: siteSetting.siteName,
+      images: [{ url: story.coverImage, alt: story.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
       title: `${story.title} - ${siteSetting.siteName}`,
       description,
       images: [story.coverImage],
@@ -55,12 +68,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function ChiTietTruyenPage({ params }: Props) {
   const { id } = await params;
   const currentUser = await getCurrentUser();
-  const story = await db.story.findUnique({
+  const story = await db.story.findFirst({
     where: {
       slug: id,
+      published: true,
     },
     include: {
       chapters: {
+        where: {
+          published: true,
+        },
         orderBy: {
           number: "asc",
         },
@@ -75,6 +92,7 @@ export default async function ChiTietTruyenPage({ params }: Props) {
   const relatedStories = await db.story.findMany({
     where: {
       category: story.category,
+      published: true,
       id: {
         not: story.id,
       },

@@ -1,15 +1,36 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
 import { db } from "@/lib/db";
+import { absoluteUrl } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  title: "Truyện mới cập nhật",
+  description: "Danh sách truyện mới cập nhật tại Một Chạm.",
+  alternates: {
+    canonical: absoluteUrl("/truyen"),
+  },
+  openGraph: {
+    title: "Truyện mới cập nhật - Một Chạm",
+    description: "Theo dõi các truyện và chương mới nhất được cập nhật tại Một Chạm.",
+    url: absoluteUrl("/truyen"),
+  },
+};
 
 export default async function DanhSachTruyenPage() {
   const stories = await db.story.findMany({
+    where: {
+      published: true,
+    },
     orderBy: {
       updatedAt: "desc",
     },
     include: {
       chapters: {
+        where: {
+          published: true,
+        },
         orderBy: {
           number: "desc",
         },

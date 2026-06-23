@@ -37,10 +37,7 @@ function getCloudinaryConfig() {
 
 function hasCloudinaryConfig() {
   const config = getCloudinaryConfig();
-  return Boolean(
-    config.cloudName &&
-      (config.uploadPreset || (config.apiKey && config.apiSecret))
-  );
+  return Boolean(config.cloudName && (config.uploadPreset || (config.apiKey && config.apiSecret)));
 }
 
 function createCloudinarySignature(params: Record<string, string>, apiSecret: string) {

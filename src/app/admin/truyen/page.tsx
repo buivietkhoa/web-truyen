@@ -7,36 +7,27 @@ import AdminStoryForm from "@/components/admin/AdminStoryForm";
 import { db } from "@/lib/db";
 
 export const metadata: Metadata = {
-  title: "Quản lý truyện - Mọt Admin",
+  title: "Quản lý truyện - Một Admin",
 };
 
 export default async function AdminStoriesPage() {
   const stories = await db.story.findMany({
-    orderBy: {
-      updatedAt: "desc",
-    },
+    orderBy: { updatedAt: "desc" },
     include: {
       chapters: {
-        orderBy: {
-          number: "desc",
-        },
+        orderBy: { number: "desc" },
         take: 1,
       },
-      _count: {
-        select: {
-          chapters: true,
-        },
-      },
+      _count: { select: { chapters: true } },
     },
   });
 
-  const totalChapters = stories.reduce((total, story) => total + story._count.chapters, 0);
   const completedStories = stories.filter((story) => story.status === "Hoàn thành").length;
+  const publicStories = stories.filter((story) => story.published).length;
   const totalViews = stories.reduce((total, story) => total + story.views, 0);
 
   return (
     <div className="admin-stories-page">
-      {/* Header + Stats — fixed top */}
       <div className="admin-stories-top">
         <section className="admin-hero">
           <div>
@@ -54,8 +45,8 @@ export default async function AdminStoriesPage() {
             <strong>{stories.length}</strong>
           </div>
           <div className="admin-stat-card">
-            <span>Tổng chương</span>
-            <strong>{totalChapters}</strong>
+            <span>Công khai</span>
+            <strong>{publicStories}</strong>
           </div>
           <div className="admin-stat-card active">
             <span>Lượt xem</span>
@@ -68,7 +59,6 @@ export default async function AdminStoriesPage() {
         </section>
       </div>
 
-      {/* Body: Form (left) + List (right) — fills remaining height */}
       <div className="admin-stories-body">
         <div className="admin-stories-form-col">
           <AdminStoryForm />
@@ -87,7 +77,7 @@ export default async function AdminStoriesPage() {
             {stories.length === 0 ? (
               <div className="admin-empty">
                 <h3>Chưa có truyện nào</h3>
-                <p>Hãy thêm truyện đầu tiên bằng form bên trái. Trang web public sẽ tự hiển thị khi có dữ liệu.</p>
+                <p>Hãy thêm truyện đầu tiên bằng form bên trái. Website chỉ hiển thị truyện đã đặt công khai.</p>
               </div>
             ) : (
               <div className="admin-story-table">
@@ -122,21 +112,18 @@ export default async function AdminStoriesPage() {
                         </span>
                       </div>
 
-                      <div>
+                      <div className="admin-story-status-stack">
                         <span className={`admin-status-pill ${story.status === "Hoàn thành" ? "done" : "updating"}`}>
                           {story.status}
+                        </span>
+                        <span className={`admin-status-pill ${story.published ? "published" : "draft"}`}>
+                          {story.published ? "Công khai" : "Bản nháp"}
                         </span>
                       </div>
 
                       <div className="admin-story-metrics">
-                        <span>
-                          <FaBookOpen />
-                          {story._count.chapters} chương
-                        </span>
-                        <span>
-                          <FaEye />
-                          {story.views.toLocaleString("vi-VN")} lượt xem
-                        </span>
+                        <span><FaBookOpen />{story._count.chapters} chương</span>
+                        <span><FaEye />{story.views.toLocaleString("vi-VN")} lượt xem</span>
                       </div>
 
                       <div className="admin-story-date">
@@ -146,20 +133,21 @@ export default async function AdminStoriesPage() {
 
                       <div className="admin-story-actions">
                         <Link className="admin-story-action primary" href={`/admin/truyen/${story.id}/chuong`}>
-                          <FaPenNib />
-                          Quản lý chương
+                          <FaPenNib /> Quản lý chương
                         </Link>
-                        <AdminEditStoryModal story={{
-                          id: story.id,
-                          title: story.title,
-                          category: story.category,
-                          status: story.status,
-                          coverImage: story.coverImage,
-                          description: story.description,
-                        }} />
+                        <AdminEditStoryModal
+                          story={{
+                            id: story.id,
+                            title: story.title,
+                            category: story.category,
+                            status: story.status,
+                            coverImage: story.coverImage,
+                            description: story.description,
+                            published: story.published,
+                          }}
+                        />
                         <Link className="admin-story-action" href={`/truyen/${story.slug}`}>
-                          <FaEye />
-                          Xem
+                          <FaEye /> Xem
                         </Link>
                         <AdminDeleteStoryButton storyId={story.id} storyTitle={story.title} />
                       </div>

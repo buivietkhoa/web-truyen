@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   if (!admin) {
     return NextResponse.json(
       { message: "Bạn không có quyền quản trị." },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
@@ -39,33 +39,34 @@ export async function POST(request: Request) {
       ? sanitizeRichContent(body.description)
       : "";
     const customSlug = typeof body.slug === "string" ? body.slug.trim() : "";
+    const published = typeof body.published === "boolean" ? body.published : true;
     const slug = createSlug(customSlug || title);
 
     if (!title || !category || !coverImage || !description) {
       return NextResponse.json(
         { message: "Vui lòng nhập đầy đủ thông tin truyện." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!isUploadedCoverImage(coverImage)) {
       return NextResponse.json(
         { message: "Ảnh bìa phải được upload từ form quản trị." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!slug) {
       return NextResponse.json(
         { message: "Không thể tạo đường dẫn truyện từ tên đã nhập." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!allowedStatuses.has(status)) {
       return NextResponse.json(
         { message: "Trạng thái truyện không hợp lệ." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -81,7 +82,7 @@ export async function POST(request: Request) {
     if (existedStory) {
       return NextResponse.json(
         { message: "Đường dẫn truyện đã tồn tại. Hãy đổi tên hoặc nhập slug khác." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -93,6 +94,7 @@ export async function POST(request: Request) {
         status,
         coverImage,
         description,
+        published,
       },
     });
 
@@ -101,14 +103,14 @@ export async function POST(request: Request) {
         message: "Thêm truyện thành công.",
         story,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("ADMIN_CREATE_STORY_ERROR", error);
 
     return NextResponse.json(
       { message: "Lỗi server khi thêm truyện." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

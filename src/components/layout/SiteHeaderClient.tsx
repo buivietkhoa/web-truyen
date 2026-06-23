@@ -2,13 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  FaBars,
-  FaBell,
-  FaSearch,
-  FaTimes,
-  FaUser,
-} from "react-icons/fa";
+import { FaBars, FaSearch, FaTimes, FaUser } from "react-icons/fa";
+import NotificationBell from "@/components/layout/NotificationBell";
+import UserPresenceTracker from "@/components/analytics/UserPresenceTracker";
 import { categories } from "@/data/categories";
 
 export type ActivePage = "home" | "updates" | "profile";
@@ -40,7 +36,9 @@ export default function SiteHeaderClient({
   }, [isMenuOpen]);
 
   return (
-    <header className="site-header">
+    <>
+      {userName && <UserPresenceTracker />}
+      <header className="site-header">
       <div className="container header-inner d-flex align-items-center">
         <Link href="/" className="brand" onClick={closeMenu}>
           {logoUrl && <img src={logoUrl} alt="" className="site-brand-logo" />}
@@ -66,9 +64,7 @@ export default function SiteHeaderClient({
         </form>
 
         <div className="header-actions">
-          <span className="header-icon" aria-label="Thông báo" title="Thông báo">
-            <FaBell />
-          </span>
+          {userName && <NotificationBell />}
 
           {userName ? (
             <Link
@@ -133,6 +129,7 @@ export default function SiteHeaderClient({
           </div>
         </div>
       </div>
-    </header>
+      </header>
+    </>
   );
 }

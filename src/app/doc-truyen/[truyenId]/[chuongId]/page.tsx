@@ -1,22 +1,18 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FaArrowLeft, FaArrowRight, FaBookOpen } from "react-icons/fa";
-import AffiliateContentGate from "@/components/affiliate/AffiliateContentGate";
+import AffiliateTimedPopup from "@/components/affiliate/AffiliateTimedPopup";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
 import ChapterSelect from "@/components/reader/ChapterSelect";
 import ReadingHistoryTracker from "@/components/reader/ReadingHistoryTracker";
 import ReaderToolbar from "@/components/reader/ReaderToolbar";
 import ViewTracker from "@/components/reader/ViewTracker";
-import { getRandomAffiliateGateSetting } from "@/lib/affiliate";
-import {
-  affiliateUnlockCookieName,
-  verifyAffiliateUnlockToken,
-} from "@/lib/affiliate-unlock";
+import { getTimedAffiliatePopupData } from "@/lib/affiliate";
 import { db } from "@/lib/db";
 import { sanitizeRichContent } from "@/lib/sanitize-content";
+import { absoluteUrl, truncateMeta } from "@/lib/seo";
 import { getSiteSetting } from "@/lib/site-settings";
 
 interface Props {
@@ -27,12 +23,16 @@ interface Props {
 }
 
 async function getReaderData(truyenId: string, chuongId: string) {
-  const story = await db.story.findUnique({
+  const story = await db.story.findFirst({
     where: {
       slug: truyenId,
+      published: true,
     },
     include: {
       chapters: {
+        where: {
+          published: true,
+        },
         orderBy: {
           number: "asc",
         },
@@ -66,12 +66,40 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!data) {
     return {
       title: `Không tìm thấy chương - ${siteSetting.siteName}`,
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
 
+  const { story, chapter } = data;
+  const title = `Chương ${chapter.number}: ${chapter.title} - ${story.title}`;
+  const description =
+    truncateMeta(chapter.content) ||
+    `Đọc chương ${chapter.number} của truyện ${story.title} trên ${siteSetting.siteName}.`;
+  const url = absoluteUrl(`/doc-truyen/${story.slug}/${chapter.id}`);
+
   return {
-    title: `Chương ${data.chapter.number}: ${data.chapter.title} - ${data.story.title}`,
-    description: `Đọc chương ${data.chapter.number} của truyện ${data.story.title} trên ${siteSetting.siteName}.`,
+    title,
+    description,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
+      type: "article",
+      title,
+      description,
+      url,
+      siteName: siteSetting.siteName,
+      images: [{ url: story.coverImage, alt: story.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [story.coverImage],
+    },
   };
 }
 
@@ -84,21 +112,13 @@ export default async function DocTruyenPage({ params }: Props) {
   }
 
   const { story, chapter, prevChapter, nextChapter } = data;
-  const affiliateModalSetting = await getRandomAffiliateGateSetting();
-  const requiresAffiliateGate = affiliateModalSetting !== null && chapter.number > 1;
-  const cookieStore = await cookies();
-  const hasServerUnlock = verifyAffiliateUnlockToken(
-    cookieStore.get(affiliateUnlockCookieName)?.value,
-    chapter.id
-  );
-  const visibleContent = !requiresAffiliateGate || hasServerUnlock
-    ? sanitizeRichContent(chapter.content)
-    : null;
+  const affiliatePopupData = await getTimedAffiliatePopupData();
+  const visibleContent = sanitizeRichContent(chapter.content);
 
   return (
     <>
       <ViewTracker storyId={story.id} />
-      <ReadingHistoryTracker storyId={story.id} chapterId={chapter.id} />
+      <ReadingHistoryTracker storyId={story.id} chapterId={chapter.id} chapterNumber={chapter.number} />
       <SiteHeader />
 
       <ReaderToolbar>
@@ -120,7 +140,11 @@ export default async function DocTruyenPage({ params }: Props) {
               <span>{story.title}</span>
             </header>
 
-            <ChapterSelect truyenId={story.slug} chuongs={story.chapters.map(({ id, title, number }) => ({ id, title, number }))} currentChapterId={chapter.id} />
+            <ChapterSelect
+              truyenId={story.slug}
+              chuongs={story.chapters.map(({ id, title, number }) => ({ id, title, number }))}
+              currentChapterId={chapter.id}
+            />
 
             <div className="reader-nav">
               {prevChapter ? (
@@ -144,12 +168,22 @@ export default async function DocTruyenPage({ params }: Props) {
               )}
             </div>
 
-            <AffiliateContentGate
-              content={visibleContent}
-              chapterId={chapter.id}
-              chapterNumber={chapter.number}
-              setting={affiliateModalSetting}
+            <section
+              className="reader-content"
+              dangerouslySetInnerHTML={{ __html: visibleContent }}
             />
+
+            {affiliatePopupData && (
+              <AffiliateTimedPopup
+                key={chapter.id}
+                products={affiliatePopupData.products}
+                storyId={story.id}
+                chapterId={chapter.id}
+                chapterNumber={chapter.number}
+                waitSeconds={affiliatePopupData.waitSeconds}
+                effect={affiliatePopupData.effect}
+              />
+            )}
 
             <div className="reader-nav reader-nav-bottom">
               {prevChapter ? (
@@ -160,9 +194,7 @@ export default async function DocTruyenPage({ params }: Props) {
                 <span />
               )}
 
-              <Link href={`/truyen/${story.slug}`}>
-                Danh sách chương
-              </Link>
+              <Link href={`/truyen/${story.slug}`}>Danh sách chương</Link>
 
               {nextChapter ? (
                 <Link href={`/doc-truyen/${story.slug}/${nextChapter.id}`}>

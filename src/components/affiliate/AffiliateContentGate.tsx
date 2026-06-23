@@ -1,5 +1,6 @@
 "use client";
 
+import DOMPurify from "dompurify";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { FaLock, FaTimes } from "react-icons/fa";
@@ -51,6 +52,11 @@ export default function AffiliateContentGate({
   const [secondsLeft, setSecondsLeft] = useState(setting?.waitSeconds ?? 0);
   const [unlocking, setUnlocking] = useState(false);
   const unlocked = !requiresGate || content !== null;
+  const safeContent = useMemo(() => {
+    if (!content) return "";
+    if (typeof window === "undefined") return content;
+    return DOMPurify.sanitize(content);
+  }, [content]);
 
   useEffect(() => {
     if (!requiresGate || unlocked) {
@@ -110,7 +116,7 @@ export default function AffiliateContentGate({
     return (
       <section
         className="reader-content"
-        dangerouslySetInnerHTML={{ __html: content || "" }}
+        dangerouslySetInnerHTML={{ __html: safeContent }}
       />
     );
   }

@@ -5,6 +5,7 @@ import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
 import { getCategoryBySlug } from "@/data/categories";
 import { db } from "@/lib/db";
+import { absoluteUrl } from "@/lib/seo";
 
 interface Props {
   params: Promise<{
@@ -18,13 +19,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!category) {
     return {
-      title: "Không tìm thấy thể loại - Mọt Chạm",
+      title: "Không tìm thấy thể loại - Một Chạm",
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
 
+  const url = absoluteUrl(`/the-loai/${category.slug}`);
+
   return {
-    title: `${category.name} - Mọt Chạm`,
-    description: `Danh sách truyện thuộc thể loại ${category.name} trên Mọt Chạm.`,
+    title: `${category.name} - Một Chạm`,
+    description: `Danh sách truyện thuộc thể loại ${category.name} trên Một Chạm.`,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
+      title: `${category.name} - Một Chạm`,
+      description: `Khám phá các truyện ${category.name} mới nhất trên Một Chạm.`,
+      url,
+    },
   };
 }
 
@@ -39,12 +54,16 @@ export default async function ChiTietTheLoaiPage({ params }: Props) {
   const stories = await db.story.findMany({
     where: {
       category: category.name,
+      published: true,
     },
     orderBy: {
       updatedAt: "desc",
     },
     include: {
       chapters: {
+        where: {
+          published: true,
+        },
         orderBy: {
           number: "desc",
         },

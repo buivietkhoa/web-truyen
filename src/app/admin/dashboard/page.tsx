@@ -1,208 +1,149 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FaBookOpen, FaEye, FaPlus, FaUsers } from "react-icons/fa";
+import { FaBookOpen, FaEye, FaLayerGroup, FaPlus, FaUsers } from "react-icons/fa";
+import AdminDashboardPeriodFilter from "@/components/admin/AdminDashboardPeriodFilter";
+import AdminRecentActivityPanel from "@/components/admin/AdminRecentActivityPanel";
+import AdminTopStoriesTable from "@/components/admin/AdminTopStoriesTable";
+import AdminViewsChart from "@/components/admin/AdminViewsChart";
 import { addUtcDays, getBangkokDateKey } from "@/lib/date";
 import { db } from "@/lib/db";
 
-export const metadata: Metadata = {
-  title: "Tổng quan - Mọt Admin",
-};
+export const metadata: Metadata = { title: "Tổng quan - Mọt Admin" };
 
-export default async function AdminDashboardPage() {
-  const [storyCount, chapterCount, userCount, totalViews, topStories, recentStories, recentUsers] = await Promise.all([
+interface Props {
+  searchParams: Promise<{ range?: string; from?: string; to?: string }>;
+}
+
+function parseDate(value: string | undefined, fallback: Date) {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return fallback;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return Number.isNaN(date.getTime()) ? fallback : date;
+}
+
+function dateKey(value: Date) {
+  return value.toISOString().slice(0, 10);
+}
+
+function trend(current: number, previous: number) {
+  if (previous === 0) return current === 0 ? 0 : 100;
+  return Math.round(((current - previous) / previous) * 100);
+}
+
+function DashboardTrend({ value }: { value: number }) {
+  return <span className={`admin-dashboard-trend ${value > 0 ? "up" : value < 0 ? "down" : "neutral"}`}>{value > 0 ? "↑" : value < 0 ? "↓" : "–"} {Math.abs(value)}%</span>;
+}
+
+function formatDateTime(value: Date) {
+  return new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Bangkok",
+  }).format(value);
+}
+
+export default async function AdminDashboardPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const today = getBangkokDateKey();
+  const range = ["today", "7", "30", "90", "custom"].includes(params.range || "") ? params.range! : "7";
+  const presetDays = range === "today" ? 1 : range === "custom" ? 7 : Number(range);
+  let start = range === "custom" ? parseDate(params.from, addUtcDays(today, -6)) : addUtcDays(today, -(presetDays - 1));
+  let end = range === "custom" ? parseDate(params.to, today) : today;
+  if (start > end) [start, end] = [end, start];
+  const selectedDays = Math.min(365, Math.max(1, Math.round((end.getTime() - start.getTime()) / 86400000) + 1));
+  start = addUtcDays(end, -(selectedDays - 1));
+  const endExclusive = addUtcDays(end, 1);
+  const previousStart = addUtcDays(start, -selectedDays);
+  const periodLabel = range === "today" ? "hôm nay" : range === "custom" ? `từ ${start.getUTCDate()}/${start.getUTCMonth() + 1} đến ${end.getUTCDate()}/${end.getUTCMonth() + 1}` : `${selectedDays} ngày qua`;
+
+  const [
+    storyCount,
+    chapterCount,
+    userCount,
+    newStories,
+    previousStories,
+    newChapters,
+    previousChapters,
+    newUsers,
+    previousUsers,
+    dailyViews,
+    topStories,
+    recentStories,
+    recentChapters,
+    recentUsers,
+  ] = await Promise.all([
     db.story.count(),
     db.chapter.count(),
     db.user.count(),
-    db.story.aggregate({
-      _sum: {
-        views: true,
-      },
-    }),
+    db.story.count({ where: { createdAt: { gte: start, lt: endExclusive } } }),
+    db.story.count({ where: { createdAt: { gte: previousStart, lt: start } } }),
+    db.chapter.count({ where: { createdAt: { gte: start, lt: endExclusive } } }),
+    db.chapter.count({ where: { createdAt: { gte: previousStart, lt: start } } }),
+    db.user.count({ where: { createdAt: { gte: start, lt: endExclusive } } }),
+    db.user.count({ where: { createdAt: { gte: previousStart, lt: start } } }),
+    db.dailyView.findMany({ where: { date: { gte: previousStart, lt: endExclusive } }, orderBy: { date: "asc" } }),
     db.story.findMany({
-      orderBy: {
-        views: "desc",
-      },
-      take: 5,
-      include: {
-        _count: {
-          select: {
-            chapters: true,
-          },
-        },
-      },
+      where: { updatedAt: { gte: start, lt: endExclusive } },
+      orderBy: { views: "desc" },
+      take: 100,
+      select: { id: true, slug: true, title: true, category: true, status: true, views: true, updatedAt: true, _count: { select: { chapters: true } } },
     }),
-    db.story.findMany({
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 3,
-    }),
-    db.user.findMany({
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 2,
-      select: {
-        name: true,
-        email: true,
-        createdAt: true,
-      },
-    }),
+    db.story.findMany({ where: { createdAt: { gte: start, lt: endExclusive } }, orderBy: { createdAt: "desc" }, take: 10, select: { id: true, slug: true, title: true, createdAt: true } }),
+    db.chapter.findMany({ where: { createdAt: { gte: start, lt: endExclusive } }, orderBy: { createdAt: "desc" }, take: 10, select: { id: true, number: true, title: true, createdAt: true, story: { select: { slug: true, title: true } } } }),
+    db.user.findMany({ where: { createdAt: { gte: start, lt: endExclusive } }, orderBy: { createdAt: "desc" }, take: 10, select: { id: true, name: true, createdAt: true, authProvider: true } }),
   ]);
 
-  const today = getBangkokDateKey();
-  const sevenDaysAgo = addUtcDays(today, -6);
+  const chartDays = Array.from({ length: selectedDays }, (_, index) => addUtcDays(start, index));
+  const weekdayNames = ["Chủ nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+  const chartData = chartDays.map((day) => ({
+    date: dateKey(day),
+    label: `${String(day.getUTCDate()).padStart(2, "0")}/${String(day.getUTCMonth() + 1).padStart(2, "0")}`,
+    tooltipLabel: `${weekdayNames[day.getUTCDay()]} ${String(day.getUTCDate()).padStart(2, "0")}/${String(day.getUTCMonth() + 1).padStart(2, "0")}`,
+    count: dailyViews.find((item) => item.date.getTime() === day.getTime())?.count ?? 0,
+  }));
+  const currentViews = chartData.reduce((sum, item) => sum + item.count, 0);
+  const previousViews = dailyViews.filter((item) => item.date >= previousStart && item.date < start).reduce((sum, item) => sum + item.count, 0);
 
-  const dailyViews = await db.dailyView.findMany({
-    where: { date: { gte: sevenDaysAgo } },
-  });
-
-  const dayNames = ["CN", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"];
-  const chartDays = Array.from({ length: 7 }, (_, i) => {
-    return addUtcDays(sevenDaysAgo, i);
-  });
-  const chartValues = chartDays.map((d) => {
-    const entry = dailyViews.find((v) => v.date.getTime() === d.getTime());
-    return entry?.count ?? 0;
-  });
-  const maxChartValue = Math.max(...chartValues, 1);
-  const recentActivities = [
-    ...recentStories.map((story) => ({
-      title: `Thêm truyện: ${story.title}`,
-      meta: `${story.category} - ${story.createdAt.toLocaleDateString("vi-VN")}`,
-      icon: "book",
-    })),
-    ...recentUsers.map((user) => ({
-      title: `User mới: ${user.name}`,
-      meta: `${user.email} - ${user.createdAt.toLocaleDateString("vi-VN")}`,
-      icon: "user",
-    })),
-  ].slice(0, 5);
+  const activities = [
+    ...recentStories.map((item) => ({ id: `story-${item.id}`, date: item.createdAt, type: "book" as const, title: `Thêm truyện: ${item.title}`, actor: "Quản trị viên", href: `/truyen/${item.slug}` })),
+    ...recentChapters.map((item) => ({ id: `chapter-${item.id}`, date: item.createdAt, type: "edit" as const, title: `Đăng chương ${item.number}: ${item.title}`, actor: "Quản trị viên", href: `/doc-truyen/${item.story.slug}/${item.id}` })),
+    ...recentUsers.map((item) => ({ id: `user-${item.id}`, date: item.createdAt, type: "user" as const, title: `Người dùng mới: ${item.name}`, actor: item.authProvider === "GOOGLE" ? "Google" : item.authProvider === "FACEBOOK" ? "Facebook" : "Email", href: "/admin/users" })),
+  ].sort((first, second) => second.date.getTime() - first.date.getTime()).slice(0, 15).map((item) => ({
+    id: item.id,
+    type: item.type,
+    title: item.title,
+    actor: item.actor,
+    href: item.href,
+    dateLabel: formatDateTime(item.date),
+  }));
 
   return (
-    <div className="admin-page">
+    <div className="admin-page admin-dashboard-page">
       <section className="admin-hero">
-        <div>
-          <h2>Bảng điều khiển hệ thống</h2>
-          <p>Chào mừng trở lại, đây là hiệu suất nội dung truyện hôm nay.</p>
-        </div>
-        <div className="admin-hero-actions">
-          <span>7 ngày qua</span>
-          <Link href="/admin/truyen">Thêm truyện</Link>
-        </div>
+        <div><h2>Bảng điều khiển hệ thống</h2><p>Theo dõi hiệu suất nội dung và hoạt động của website trong {periodLabel}.</p></div>
+        <div className="admin-hero-actions"><AdminDashboardPeriodFilter range={range} from={dateKey(start)} to={dateKey(end)} /><Link href="/admin/truyen"><FaPlus /> Thêm truyện</Link></div>
       </section>
 
-      <section className="admin-stat-grid admin-stat-grid-four">
-        <div className="admin-stat-card">
-          <div className="admin-stat-icon blue"><FaBookOpen /></div>
-          <span>Tổng truyện</span>
-          <strong>{storyCount.toLocaleString("vi-VN")}</strong>
-        </div>
-        <div className="admin-stat-card">
-          <div className="admin-stat-icon violet"><FaPlus /></div>
-          <span>Tổng chương</span>
-          <strong>{chapterCount.toLocaleString("vi-VN")}</strong>
-        </div>
-        <div className="admin-stat-card active">
-          <div className="admin-stat-icon gray"><FaEye /></div>
-          <span>Tổng lượt xem</span>
-          <strong>{(totalViews._sum.views || 0).toLocaleString("vi-VN")}</strong>
-        </div>
-        <div className="admin-stat-card">
-          <div className="admin-stat-icon green"><FaUsers /></div>
-          <span>Người dùng</span>
-          <strong>{userCount.toLocaleString("vi-VN")}</strong>
-        </div>
+      <section className="admin-stat-grid admin-stat-grid-four admin-dashboard-stats">
+        <Link href="/admin/truyen" className="admin-stat-card"><div className="admin-stat-icon blue"><FaBookOpen /></div><span>Tổng truyện</span><strong>{storyCount}</strong><small>+{newStories} trong kỳ</small><DashboardTrend value={trend(newStories, previousStories)} /></Link>
+        <Link href="/admin/truyen" className="admin-stat-card"><div className="admin-stat-icon violet"><FaLayerGroup /></div><span>Tổng chương</span><strong>{chapterCount}</strong><small>+{newChapters} trong kỳ</small><DashboardTrend value={trend(newChapters, previousChapters)} /></Link>
+        <Link href="/admin/reports" className="admin-stat-card active"><div className="admin-stat-icon gray"><FaEye /></div><span>Lượt xem trong kỳ</span><strong>{currentViews}</strong><small>So với kỳ trước</small><DashboardTrend value={trend(currentViews, previousViews)} /></Link>
+        <Link href="/admin/users" className="admin-stat-card"><div className="admin-stat-icon green"><FaUsers /></div><span>Người dùng</span><strong>{userCount}</strong><small>+{newUsers} trong kỳ</small><DashboardTrend value={trend(newUsers, previousUsers)} /></Link>
       </section>
 
       <section className="admin-dashboard-grid">
-        <div className="admin-panel admin-chart-panel">
-          <div className="admin-panel-head">
-            <div>
-              <h2>Lượt xem 7 ngày qua</h2>
-            </div>
-            <div className="admin-chart-legend">
-              <span /> Lượt xem
-            </div>
-          </div>
-
-          <div className="admin-bar-chart" aria-label="Biểu đồ lượt xem">
-            {chartDays.map((day, index) => (
-              <div className="admin-bar-item" key={index}>
-                <div className="admin-bar-track">
-                  <span style={{ height: `${Math.round((chartValues[index] / maxChartValue) * 100)}%` }} />
-                </div>
-                <small>{dayNames[day.getUTCDay()]}</small>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="admin-panel admin-activity-panel">
-          <div className="admin-panel-head">
-            <div>
-              <h2>Hoạt động gần đây</h2>
-            </div>
-            <Link href="/admin/truyen">Tất cả</Link>
-          </div>
-
-          {recentActivities.length === 0 ? (
-            <div className="admin-empty compact">
-              <h3>Chưa có hoạt động</h3>
-              <p>Hoạt động mới sẽ xuất hiện tại đây.</p>
-            </div>
-          ) : (
-            <div className="admin-activity-list">
-              {recentActivities.map((item) => (
-                <div className="admin-activity-item" key={`${item.title}-${item.meta}`}>
-                  <span className={item.icon}>{item.icon === "book" ? "B" : "U"}</span>
-                  <div>
-                    <strong>{item.title}</strong>
-                    <p>{item.meta}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <AdminViewsChart data={chartData} fixedRange fixedTitle={`Lượt xem trong ${periodLabel}`} />
+        <AdminRecentActivityPanel activities={activities} />
       </section>
 
-      <section className="admin-panel">
-        <div className="admin-panel-head">
-          <div>
-            <h2>Top truyện nổi bật</h2>
-          </div>
-          <Link href="/admin/truyen">Quản lý truyện</Link>
-        </div>
-
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Truyện</th>
-                <th>Thể loại</th>
-                <th>Chương</th>
-                <th>Lượt xem</th>
-                <th>Trạng thái</th>
-              </tr>
-            </thead>
-            <tbody>
-              {topStories.map((story) => (
-                <tr key={story.id}>
-                  <td>
-                    <strong>{story.title}</strong>
-                    <span>{story.slug}</span>
-                  </td>
-                  <td>{story.category}</td>
-                  <td>{story._count.chapters}</td>
-                  <td>{story.views.toLocaleString("vi-VN")}</td>
-                  <td>{story.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <AdminTopStoriesTable
+        generatedAt={endExclusive.toISOString()}
+        totalViews={currentViews}
+        title="Top truyện có lượt xem cao nhất"
+        stories={topStories.map((story) => ({ id: story.id, slug: story.slug, title: story.title, category: story.category, status: story.status, views: story.views, chapters: story._count.chapters, updatedAt: story.updatedAt.toISOString() }))}
+      />
     </div>
   );
 }

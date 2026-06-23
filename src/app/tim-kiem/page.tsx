@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { FaSearch } from "react-icons/fa";
+import SearchTracker from "@/components/analytics/SearchTracker";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
 import { db } from "@/lib/db";
+import { absoluteUrl } from "@/lib/seo";
 
 interface Props {
   searchParams: Promise<{
@@ -12,8 +14,15 @@ interface Props {
 }
 
 export const metadata: Metadata = {
-  title: "Tìm kiếm truyện - Mọt Chạm",
-  description: "Tìm truyện theo tên truyện hoặc thể loại trên Mọt Chạm.",
+  title: "Tìm kiếm truyện",
+  description: "Tìm truyện theo tên truyện hoặc thể loại trên Một Chạm.",
+  alternates: {
+    canonical: absoluteUrl("/tim-kiem"),
+  },
+  robots: {
+    index: false,
+    follow: true,
+  },
 };
 
 export default async function TimKiemPage({ searchParams }: Props) {
@@ -22,6 +31,7 @@ export default async function TimKiemPage({ searchParams }: Props) {
   const results = keyword
     ? await db.story.findMany({
         where: {
+          published: true,
           OR: [
             { title: { contains: keyword, mode: "insensitive" } },
             { category: { contains: keyword, mode: "insensitive" } },
@@ -36,6 +46,7 @@ export default async function TimKiemPage({ searchParams }: Props) {
   return (
     <>
       <SiteHeader />
+      {keyword && <SearchTracker query={keyword} />}
 
       <main className="search-page">
         <section className="catalog-container">

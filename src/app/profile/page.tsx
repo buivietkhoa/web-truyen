@@ -12,7 +12,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 export const metadata: Metadata = {
-  title: "Hồ sơ cá nhân - Mọt Chạm",
+  title: "Hồ sơ cá nhân - Một Chạm",
 };
 
 function formatJoinDate(date: Date) {
@@ -43,6 +43,17 @@ export default async function ProfilePage() {
     db.readingHistory.findMany({
       where: {
         userId: currentUser.id,
+        story: {
+          published: true,
+        },
+        OR: [
+          { chapterId: null },
+          {
+            chapter: {
+              published: true,
+            },
+          },
+        ],
       },
       orderBy: { updatedAt: "desc" },
       take: 20,
@@ -54,11 +65,17 @@ export default async function ProfilePage() {
     db.favorite.count({
       where: {
         userId: currentUser.id,
+        story: {
+          published: true,
+        },
       },
     }),
     db.favorite.findMany({
       where: {
         userId: currentUser.id,
+        story: {
+          published: true,
+        },
       },
       orderBy: {
         createdAt: "desc",
@@ -68,6 +85,9 @@ export default async function ProfilePage() {
         story: {
           include: {
             chapters: {
+              where: {
+                published: true,
+              },
               orderBy: {
                 number: "desc",
               },
@@ -128,7 +148,7 @@ export default async function ProfilePage() {
               </div>
 
               <h1>{user.name}</h1>
-              <p>Thành viên Mọt Chạm</p>
+              <p>Thành viên Một Chạm</p>
             </div>
 
             <nav className="profile-menu">

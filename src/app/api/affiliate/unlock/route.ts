@@ -5,9 +5,19 @@ import {
   createAffiliateUnlockToken,
 } from "@/lib/affiliate-unlock";
 import { db } from "@/lib/db";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request);
+    const rl = await checkRateLimit({ key: `affiliate_unlock:${ip}`, limit: 10, windowMs: 60_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { message: "Quá nhiều yêu cầu. Vui lòng thử lại sau." },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfter) } }
+      );
+    }
+
     const body = await request.json();
     const chapterId = typeof body.chapterId === "string" ? body.chapterId : "";
     const productId = typeof body.productId === "string" ? body.productId : "";

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminUser } from "@/lib/admin";
 import { db } from "@/lib/db";
+import { notifyFavoriteReaders } from "@/lib/notifications";
 import { sanitizeRichContent } from "@/lib/sanitize-content";
 
 interface Props {
@@ -15,23 +16,23 @@ export async function POST(request: Request, { params }: Props) {
   if (!admin) {
     return NextResponse.json(
       { message: "Bạn không có quyền quản trị." },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
   try {
     const { storyId } = await params;
     const body = await request.json();
-    const title = typeof body.title === "string" ? body.title.trim() : "";
+    const requestedTitle = typeof body.title === "string" ? body.title.trim() : "";
     const content = typeof body.content === "string"
       ? sanitizeRichContent(body.content)
       : "";
-    const requestedNumber = Number(body.number);
+    const published = typeof body.published === "boolean" ? body.published : true;
 
-    if (!title || !content) {
+    if (!content) {
       return NextResponse.json(
-        { message: "Vui lòng nhập tiêu đề và nội dung chương." },
-        { status: 400 }
+        { message: "Vui lòng nhập nội dung chương." },
+        { status: 400 },
       );
     }
 
@@ -52,13 +53,12 @@ export async function POST(request: Request, { params }: Props) {
     if (!story) {
       return NextResponse.json(
         { message: "Không tìm thấy truyện." },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
-    const number = Number.isInteger(requestedNumber) && requestedNumber > 0
-      ? requestedNumber
-      : (story.chapters[0]?.number || 0) + 1;
+    const number = (story.chapters[0]?.number || 0) + 1;
+    const title = requestedTitle || `Chương ${number}`;
 
     const chapter = await db.chapter.create({
       data: {
@@ -66,6 +66,7 @@ export async function POST(request: Request, { params }: Props) {
         title,
         number,
         content,
+        published,
       },
     });
 
@@ -78,19 +79,32 @@ export async function POST(request: Request, { params }: Props) {
       },
     });
 
+    if (chapter.published && story.published) {
+      await notifyFavoriteReaders({
+        storyId: story.id,
+        storySlug: story.slug,
+        storyTitle: story.title,
+        chapterId: chapter.id,
+        chapterNumber: chapter.number,
+        chapterTitle: chapter.title,
+      }).catch((notificationError) => {
+        console.error("CREATE_CHAPTER_NOTIFICATION_ERROR", notificationError);
+      });
+    }
+
     return NextResponse.json(
       {
         message: "Thêm chương thành công.",
         chapter,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("ADMIN_CREATE_CHAPTER_ERROR", error);
 
     return NextResponse.json(
       { message: "Lỗi server khi thêm chương. Kiểm tra số chương có bị trùng không." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -11,6 +11,25 @@ export const defaultSiteSetting = {
 };
 
 export const getSiteSetting = cache(async () => {
-  const setting = await db.siteSetting.findFirst();
-  return setting ?? defaultSiteSetting;
+  try {
+    const setting = await db.siteSetting.findFirst();
+    return setting ?? defaultSiteSetting;
+  } catch (firstError) {
+    // Neon can close an idle pooled connection; retry once with a fresh checkout.
+    await new Promise((resolve) => setTimeout(resolve, 150));
+
+    try {
+      const setting = await db.siteSetting.findFirst();
+      return setting ?? defaultSiteSetting;
+    } catch (retryError) {
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Unable to load site settings after retry", {
+          firstError,
+          retryError,
+        });
+      }
+
+      return defaultSiteSetting;
+    }
+  }
 });

@@ -10,6 +10,7 @@ interface Chapter {
   number: number;
   title: string;
   content: string;
+  published: boolean;
 }
 
 interface AdminEditChapterModalProps {
@@ -29,16 +30,20 @@ export default function AdminEditChapterModal({ chapter }: AdminEditChapterModal
   const router = useRouter();
   const contentRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
+  const [published, setPublished] = useState(chapter.published);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
   const handleOpen = () => {
     setOpen(true);
+    setPublished(chapter.published);
     setError("");
     setSuccess("");
     setTimeout(() => {
-      if (contentRef.current) contentRef.current.innerHTML = chapter.content;
+      if (contentRef.current) {
+        contentRef.current.innerHTML = chapter.content;
+      }
     }, 0);
   };
 
@@ -47,28 +52,30 @@ export default function AdminEditChapterModal({ chapter }: AdminEditChapterModal
     setOpen(false);
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setError("");
     setSuccess("");
-    const fd = new FormData(e.currentTarget);
+
+    const formData = new FormData(event.currentTarget);
 
     setLoading(true);
     try {
-      const res = await fetch(
-        `/api/admin/stories/${chapter.storyId}/chapters/${chapter.id}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: fd.get("title"),
-            number: Number(fd.get("number")),
-            content: contentRef.current?.innerHTML || "",
-          }),
-        }
-      );
+      const response = await fetch(`/api/admin/stories/${chapter.storyId}/chapters/${chapter.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: formData.get("title"),
+          number: Number(formData.get("number")),
+          content: contentRef.current?.innerHTML || "",
+          published,
+        }),
+      });
 
-      if (!res.ok) { setError(await readErrorMessage(res, "Cập nhật thất bại.")); return; }
+      if (!response.ok) {
+        setError(await readErrorMessage(response, "Cập nhật thất bại."));
+        return;
+      }
 
       setSuccess("Đã cập nhật chương thành công.");
       router.refresh();
@@ -87,7 +94,7 @@ export default function AdminEditChapterModal({ chapter }: AdminEditChapterModal
       </button>
 
       {open && (
-        <div className="admin-modal-overlay" onClick={(e) => e.target === e.currentTarget && handleClose()}>
+        <div className="admin-modal-overlay" onClick={(event) => event.target === event.currentTarget && handleClose()}>
           <div className="admin-modal admin-modal-wide">
             <div className="admin-modal-head">
               <h3>Sửa chương {chapter.number}</h3>
@@ -111,6 +118,23 @@ export default function AdminEditChapterModal({ chapter }: AdminEditChapterModal
                 </label>
               </div>
 
+              <label className="admin-inline-check">
+                <input
+                  type="checkbox"
+                  checked={published}
+                  onChange={(event) => setPublished(event.target.checked)}
+                  disabled={loading}
+                />
+                <span>
+                  <strong>{published ? "Công khai chương" : "Lưu chương nháp"}</strong>
+                  <small>
+                    {published
+                      ? "Chương này đang được hiển thị ngoài website."
+                      : "Chương này đang bị ẩn khỏi website."}
+                  </small>
+                </span>
+              </label>
+
               <div className="admin-modal-row">
                 <span>Nội dung chương</span>
                 <div
@@ -124,7 +148,7 @@ export default function AdminEditChapterModal({ chapter }: AdminEditChapterModal
 
               <div className="admin-modal-footer">
                 <button type="button" className="admin-modal-cancel" onClick={handleClose} disabled={loading}>
-                  Huỷ
+                  Hủy
                 </button>
                 <button type="submit" className="admin-modal-save" disabled={loading}>
                   <FaSave />

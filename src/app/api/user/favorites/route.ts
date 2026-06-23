@@ -24,7 +24,10 @@ export async function POST(request: Request) {
   const storyId = typeof body?.storyId === "string" ? body.storyId : "";
   if (!storyId) return NextResponse.json({ message: "Thiếu mã truyện." }, { status: 400 });
 
-  const story = await db.story.findUnique({ where: { id: storyId }, select: { id: true } });
+  const story = await db.story.findFirst({
+    where: { id: storyId, published: true },
+    select: { id: true },
+  });
   if (!story) return NextResponse.json({ message: "Truyện không tồn tại." }, { status: 404 });
 
   await db.favorite.upsert({

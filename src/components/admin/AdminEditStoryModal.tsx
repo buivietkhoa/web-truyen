@@ -1,8 +1,9 @@
 "use client";
 
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
-import { FaEdit, FaSave, FaTimes, FaUpload } from "react-icons/fa";
+import { FaEdit, FaGlobeAsia, FaSave, FaTimes, FaUpload } from "react-icons/fa";
 import { categories } from "@/data/categories";
 
 interface Story {
@@ -12,6 +13,7 @@ interface Story {
   status: string;
   coverImage: string;
   description: string;
+  published: boolean;
 }
 
 interface AdminEditStoryModalProps {
@@ -36,12 +38,31 @@ export default function AdminEditStoryModal({ story }: AdminEditStoryModalProps)
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [coverImage, setCoverImage] = useState(story.coverImage);
+  const [published, setPublished] = useState(story.published);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !loading) setOpen(false);
+    };
+
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open, loading]);
 
   const handleOpen = () => {
     setOpen(true);
     setError("");
     setSuccess("");
     setCoverImage(story.coverImage);
+    setPublished(story.published);
     setTimeout(() => {
       if (descRef.current) descRef.current.innerHTML = story.description;
     }, 0);
@@ -52,47 +73,53 @@ export default function AdminEditStoryModal({ story }: AdminEditStoryModalProps)
     setOpen(false);
   };
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
     if (!file) return;
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("/api/admin/uploads", { method: "POST", body: fd });
-      if (!res.ok) { setError("Upload ảnh thất bại."); return; }
-      const data = await res.json();
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await fetch("/api/admin/uploads", { method: "POST", body: formData });
+      if (!response.ok) {
+        setError(await readErrorMessage(response, "Upload ảnh thất bại."));
+        return;
+      }
+      const data = await response.json();
       setCoverImage(data.url);
     } catch {
       setError("Không thể kết nối server khi upload.");
     } finally {
       setUploading(false);
-      e.target.value = "";
+      event.target.value = "";
     }
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setError("");
     setSuccess("");
-    const form = e.currentTarget;
-    const fd = new FormData(form);
+    const formData = new FormData(event.currentTarget);
 
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/stories/${story.id}`, {
+      const response = await fetch(`/api/admin/stories/${story.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: fd.get("title"),
-          category: fd.get("category"),
-          status: fd.get("status"),
+          title: formData.get("title"),
+          category: formData.get("category"),
+          status: formData.get("status"),
           coverImage,
           description: descRef.current?.innerHTML || "",
+          published,
         }),
       });
 
-      if (!res.ok) { setError(await readErrorMessage(res, "Cập nhật thất bại.")); return; }
+      if (!response.ok) {
+        setError(await readErrorMessage(response, "Cập nhật thất bại."));
+        return;
+      }
 
       setSuccess("Đã cập nhật truyện thành công.");
       router.refresh();
@@ -106,15 +133,21 @@ export default function AdminEditStoryModal({ story }: AdminEditStoryModalProps)
 
   return (
     <>
-      <button type="button" className="admin-story-action edit" onClick={handleOpen}>
-        <FaEdit /> Sửa
+      <button type="button" className="admin-story-action edit" onClick={handleOpen} title="Sửa thông tin truyện" aria-label="Sửa thông tin truyện">
+        <FaEdit /> <span>Sửa</span>
       </button>
 
-      {open && (
-        <div className="admin-modal-overlay" onClick={(e) => e.target === e.currentTarget && handleClose()}>
-          <div className="admin-modal">
+      {open && createPortal(
+        <div className="admin-modal-overlay" onClick={(event) => event.target === event.currentTarget && handleClose()}>
+          <div className="admin-modal admin-story-edit-modal" role="dialog" aria-modal="true" aria-labelledby={`edit-story-${story.id}`}>
             <div className="admin-modal-head">
-              <h3>Sửa truyện</h3>
+              <div className="admin-story-edit-heading">
+                <span><FaEdit /></span>
+                <div>
+                  <h3 id={`edit-story-${story.id}`}>Sửa thông tin truyện</h3>
+                  <p>Cập nhật nội dung và thiết lập hiển thị.</p>
+                </div>
+              </div>
               <button type="button" className="admin-modal-close" onClick={handleClose} disabled={loading}>
                 <FaTimes />
               </button>
@@ -135,8 +168,8 @@ export default function AdminEditStoryModal({ story }: AdminEditStoryModalProps)
                 <label>
                   <span>Thể loại</span>
                   <select name="category" defaultValue={story.category} disabled={loading}>
-                    {categories.map((c) => (
-                      <option key={c.slug} value={c.name}>{c.name}</option>
+                    {categories.map((category) => (
+                      <option key={category.slug} value={category.name}>{category.name}</option>
                     ))}
                   </select>
                 </label>
@@ -147,6 +180,23 @@ export default function AdminEditStoryModal({ story }: AdminEditStoryModalProps)
                     <option value="Hoàn thành">Hoàn thành</option>
                     <option value="Tạm ngưng">Tạm ngưng</option>
                   </select>
+                </label>
+              </div>
+
+              <div className="admin-modal-row admin-edit-visibility">
+                <span>Hiển thị ngoài website</span>
+                <label className="admin-edit-visibility-toggle">
+                  <input
+                    type="checkbox"
+                    checked={published}
+                    onChange={(event) => setPublished(event.target.checked)}
+                    disabled={loading}
+                  />
+                  <span className="admin-edit-switch" aria-hidden="true"><i /></span>
+                  <span className="admin-edit-visibility-copy">
+                    <strong><FaGlobeAsia /> {published ? "Công khai" : "Bản nháp"}</strong>
+                    <small>{published ? "Người đọc có thể tìm và đọc truyện." : "Chỉ quản trị viên nhìn thấy truyện."}</small>
+                  </span>
                 </label>
               </div>
 
@@ -175,7 +225,7 @@ export default function AdminEditStoryModal({ story }: AdminEditStoryModalProps)
 
               <div className="admin-modal-footer">
                 <button type="button" className="admin-modal-cancel" onClick={handleClose} disabled={loading}>
-                  Huỷ
+                  Hủy
                 </button>
                 <button type="submit" className="admin-modal-save" disabled={loading || uploading}>
                   <FaSave />
@@ -184,7 +234,8 @@ export default function AdminEditStoryModal({ story }: AdminEditStoryModalProps)
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );

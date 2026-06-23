@@ -7,6 +7,7 @@ import { FaBold, FaImage, FaItalic, FaLink, FaListUl, FaSave } from "react-icons
 interface AdminChapterFormProps {
   storyId: string;
   nextChapterNumber: number;
+  storyPublished: boolean;
 }
 
 async function readErrorMessage(response: Response, fallback: string) {
@@ -22,9 +23,11 @@ function getPlainTextFromHtml(html: string) {
   return html.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
 }
 
-export default function AdminChapterForm({ storyId, nextChapterNumber }: AdminChapterFormProps) {
+export default function AdminChapterForm({ storyId, nextChapterNumber, storyPublished }: AdminChapterFormProps) {
   const router = useRouter();
   const editorRef = useRef<HTMLDivElement>(null);
+  const [title, setTitle] = useState(`Chương ${nextChapterNumber}`);
+  const [published, setPublished] = useState(storyPublished);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -58,7 +61,6 @@ export default function AdminChapterForm({ storyId, nextChapterNumber }: AdminCh
     setError("");
 
     const form = event.currentTarget;
-    const formData = new FormData(form);
     const content = getEditorHtml();
 
     if (!getPlainTextFromHtml(content)) {
@@ -75,9 +77,9 @@ export default function AdminChapterForm({ storyId, nextChapterNumber }: AdminCh
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          number: formData.get("number"),
-          title: formData.get("title"),
+          title,
           content,
+          published,
         }),
       });
 
@@ -87,6 +89,8 @@ export default function AdminChapterForm({ storyId, nextChapterNumber }: AdminCh
       }
 
       form.reset();
+      setTitle(`Chương ${nextChapterNumber + 1}`);
+      setPublished(storyPublished);
       if (editorRef.current) {
         editorRef.current.innerHTML = "";
       }
@@ -105,16 +109,32 @@ export default function AdminChapterForm({ storyId, nextChapterNumber }: AdminCh
       {message && <div className="alert alert-success admin-form-wide">{message}</div>}
       {error && <div className="alert alert-danger admin-form-wide">{error}</div>}
 
-      <div className="admin-create-row">
+      <div className="admin-chapter-fields-row">
         <label>
-          <span>Số chương</span>
-          <input name="number" type="number" min={1} defaultValue={nextChapterNumber} disabled={loading} />
+          <span>Chương tiếp theo</span>
+          <input type="number" value={nextChapterNumber} readOnly aria-readonly="true" />
         </label>
 
         <label>
           <span>Tiêu đề chương</span>
-          <input name="title" placeholder={`Chương ${nextChapterNumber}`} required disabled={loading} />
+          <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder={`Chương ${nextChapterNumber}`} disabled={loading} />
         </label>
+
+        <div
+          className="admin-chapter-publish-field"
+          title={!storyPublished ? "Truyện đang là bản nháp nên chương chưa xuất hiện ngoài website." : undefined}
+        >
+          <span>Hiển thị</span>
+          <label className="admin-inline-check admin-chapter-publish-toggle">
+            <input
+              type="checkbox"
+              checked={published}
+              onChange={(event) => setPublished(event.target.checked)}
+              disabled={loading}
+            />
+            <strong>{published ? "Công khai chương" : "Lưu chương nháp"}</strong>
+          </label>
+        </div>
       </div>
 
       <label className="admin-create-block">
@@ -150,7 +170,7 @@ export default function AdminChapterForm({ storyId, nextChapterNumber }: AdminCh
       <div className="admin-form-actions">
         <button type="submit" disabled={loading}>
           <FaSave />
-          {loading ? "Đang lưu..." : "Lưu chương"}
+          {loading ? "Đang lưu..." : published ? "Đăng chương" : "Lưu bản nháp"}
         </button>
       </div>
     </form>

@@ -1,17 +1,16 @@
 "use client";
 
+import { FaSignOutAlt } from "react-icons/fa";
+
 export default function AdminLogoutButton() {
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", {
-      method: "POST",
-    });
-
+    await fetch("/api/auth/logout", { method: "POST" });
     window.location.href = "/dang-nhap";
   };
 
   return (
     <button type="button" className="admin-logout" onClick={handleLogout}>
-      Đăng xuất
+      <FaSignOutAlt /> Đăng xuất
     </button>
   );
 }

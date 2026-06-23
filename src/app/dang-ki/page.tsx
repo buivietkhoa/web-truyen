@@ -35,8 +35,13 @@ export default function DangKiPage() {
       return;
     }
 
-    if (matKhau.length < 6) {
-      setError("Mật khẩu phải có ít nhất 6 ký tự.");
+    if (matKhau.length < 8) {
+      setError("Mật khẩu phải có ít nhất 8 ký tự.");
+      return;
+    }
+
+    if (!/[A-Za-zÀ-ỹ]/.test(matKhau) || !/\d/.test(matKhau)) {
+      setError("Mật khẩu cần có cả chữ và số.");
       return;
     }
 
@@ -65,7 +70,13 @@ export default function DangKiPage() {
         return;
       }
 
-      router.push("/profile");
+      const data = await response.json().catch(() => null);
+      if (typeof data?.verificationUrl === "string") {
+        window.location.href = data.verificationUrl;
+        return;
+      }
+
+      router.push("/dang-nhap?registered=1");
       router.refresh();
     } catch {
       setError("Không thể kết nối đến server. Vui lòng kiểm tra dev server và thử lại.");
@@ -119,12 +130,12 @@ export default function DangKiPage() {
               id="register-password"
               type="password"
               className="form-control"
-              placeholder="Tối thiểu 6 ký tự"
+              placeholder="Tối thiểu 8 ký tự, có chữ và số"
               value={matKhau}
               onChange={(event) => setMatKhau(event.target.value)}
               disabled={loading}
               autoComplete="new-password"
-              minLength={6}
+              minLength={8}
               required
             />
           </div>
@@ -140,7 +151,7 @@ export default function DangKiPage() {
               onChange={(event) => setXacNhanMatKhau(event.target.value)}
               disabled={loading}
               autoComplete="new-password"
-              minLength={6}
+              minLength={8}
               required
             />
           </div>

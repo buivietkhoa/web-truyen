@@ -12,19 +12,63 @@ enum Role {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  phone     String?
-  gender    String?
-  avatar    String?
-  role      Role     @default(USER)
-  createdAt DateTime @default(now())
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  password     String
+  phone        String?
+  gender       String?
+  avatar       String?
+  role         Role      @default(USER)
+  authProvider String    @default("EMAIL")
+  emailVerifiedAt DateTime?
+  lastLoginAt  DateTime?
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  readingHistories    ReadingHistory[]
+  favorites           Favorite[]
+  passwordResetTokens PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
+  notifications       Notification[]
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model RateLimitBucket {
+  key       String   @id
+  count     Int
+  resetAt   DateTime
   updatedAt DateTime @updatedAt
 
-  readingHistories ReadingHistory[]
-  favorites        Favorite[]
+  @@index([resetAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model Story {
@@ -33,6 +77,7 @@ model Story {
   title       String
   category    String
   status      String
+  published   Boolean  @default(true)
   coverImage  String
   description String
   views       Int      @default(0)
@@ -42,6 +87,7 @@ model Story {
   chapters         Chapter[]
   readingHistories ReadingHistory[]
   favorites        Favorite[]
+  notifications    Notification[]
 }
 
 model Chapter {
@@ -50,11 +96,13 @@ model Chapter {
   title     String
   number    Int
   content   String
+  published Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   story            Story            @relation(fields: [storyId], references: [id], onDelete: Cascade)
   readingHistories ReadingHistory[]
+  notifications    Notification[]
 
   @@unique([storyId, number])
 }
@@ -86,6 +134,25 @@ model Favorite {
   @@unique([userId, storyId])
 }
 
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  storyId   String
+  chapterId String
+  title     String
+  message   String
+  href      String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  story   Story   @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  chapter Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, chapterId])
+  @@index([userId, readAt, createdAt])
+}
+
 model AffiliateSetting {
   id           String   @id @default(cuid())
   affiliateUrl String
@@ -111,6 +178,44 @@ model AffiliateProduct {
   enabled      Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+model AffiliateClick {
+  id        String   @id @default(cuid())
+  productId String
+  storyId   String?
+  chapterId String?
+  userId    String?
+  createdAt DateTime @default(now())
+
+  @@index([productId, createdAt])
+  @@index([storyId, createdAt])
+  @@index([createdAt])
+}
+
+model ReadingEvent {
+  id              String   @id @default(cuid())
+  userId          String?
+  storyId         String
+  chapterId       String
+  eventType       String
+  durationSeconds Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  @@index([eventType, createdAt])
+  @@index([storyId, createdAt])
+  @@index([chapterId, createdAt])
+  @@index([userId, createdAt])
+}
+
+model SearchEvent {
+  id        String   @id @default(cuid())
+  userId    String?
+  query     String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([query])
 }
 
 model DailyView {

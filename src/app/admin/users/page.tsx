@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import AdminUserRoleButton from "@/components/admin/AdminUserRoleButton";
+import { FaUserCheck, FaUserFriends, FaUserShield } from "react-icons/fa";
+import AdminUsersTable from "@/components/admin/AdminUsersTable";
 import { db } from "@/lib/db";
 
 export const metadata: Metadata = {
@@ -16,6 +17,10 @@ export default async function AdminUsersPage() {
       name: true,
       email: true,
       role: true,
+      active: true,
+      authProvider: true,
+      lastLoginAt: true,
+      updatedAt: true,
       createdAt: true,
     },
   });
@@ -23,76 +28,38 @@ export default async function AdminUsersPage() {
   const adminCount = users.filter((user) => user.role === "ADMIN").length;
 
   return (
-    <div className="admin-page">
+    <div className="admin-page admin-users-page">
       <section className="admin-page-head">
         <div>
-          <p>Tài khoản</p>
+          <p>Quản trị tài khoản</p>
           <h2>Người dùng</h2>
+          <span>Theo dõi thành viên và kiểm soát quyền truy cập hệ thống.</span>
         </div>
       </section>
 
-      <section className="admin-stat-grid">
+      <section className="admin-stat-grid admin-users-stats">
         <div className="admin-stat-card">
-          <span>Tổng người dùng</span>
-          <strong>{users.length}</strong>
+          <div className="admin-stat-icon blue"><FaUserFriends /></div><div><span>Tổng người dùng</span><strong>{users.length}</strong><small>Tất cả tài khoản</small></div>
         </div>
         <div className="admin-stat-card active">
-          <span>Quản trị viên</span>
-          <strong>{adminCount}</strong>
+          <div className="admin-stat-icon violet"><FaUserShield /></div><div><span>Quản trị viên</span><strong>{adminCount}</strong><small>Có quyền quản trị</small></div>
         </div>
         <div className="admin-stat-card">
-          <span>Tài khoản thường</span>
-          <strong>{users.length - adminCount}</strong>
+          <div className="admin-stat-icon green"><FaUserCheck /></div><div><span>Thành viên</span><strong>{users.length - adminCount}</strong><small>Tài khoản đọc truyện</small></div>
         </div>
       </section>
 
-      <section className="admin-panel">
-        <div className="admin-panel-head">
-          <div>
-            <p>Database</p>
-            <h2>Danh sách tài khoản</h2>
-          </div>
-          <span>{users.length} người dùng</span>
-        </div>
-
-        <div className="admin-table-wrap">
-          <table className="admin-table admin-users-table">
-            <thead>
-              <tr>
-                <th>Người dùng</th>
-                <th>Vai trò</th>
-                <th>Ngày tạo</th>
-                <th>Hành động</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user.id}>
-                  <td data-initial={user.name.charAt(0).toUpperCase()}>
-                    <div>
-                      <strong>{user.name}</strong>
-                      <span>{user.email}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <span className={`admin-role-pill ${user.role === "ADMIN" ? "admin" : "user"}`}>
-                      {user.role === "ADMIN" ? "Admin" : "User"}
-                    </span>
-                  </td>
-                  <td>{user.createdAt.toLocaleDateString("vi-VN")}</td>
-                  <td>
-                    <AdminUserRoleButton
-                      userId={user.id}
-                      userName={user.name}
-                      currentRole={user.role}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <AdminUsersTable users={users.map((user) => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        active: user.active,
+        provider: user.authProvider === "GOOGLE" ? "Google" : user.authProvider === "FACEBOOK" ? "Facebook" : "Email",
+        createdAt: user.createdAt.toLocaleDateString("vi-VN"),
+        lastLoginAt: user.lastLoginAt ? user.lastLoginAt.toLocaleDateString("vi-VN") : null,
+        lastActiveAt: user.updatedAt.toISOString(),
+      }))} />
     </div>
   );
 }

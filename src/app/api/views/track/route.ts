@@ -15,7 +15,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true, counted: false });
     }
 
-    const story = await db.story.findUnique({ where: { id: storyId }, select: { id: true } });
+    const story = await db.story.findFirst({
+      where: { id: storyId, published: true },
+      select: { id: true },
+    });
     if (!story) {
       return NextResponse.json({ error: "Story not found" }, { status: 404 });
     }

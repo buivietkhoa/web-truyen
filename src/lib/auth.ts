@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
+import { db } from "@/lib/db";
 
 type TokenPayload = {
   id: string;
@@ -22,7 +23,21 @@ export async function getCurrentUser() {
   }
 
   try {
-    return jwt.verify(token, jwtSecret) as TokenPayload;
+    const payload = jwt.verify(token, jwtSecret) as TokenPayload;
+    const user = await db.user.findUnique({
+      where: { id: payload.id },
+      select: { id: true, email: true, role: true, active: true },
+    });
+
+    if (!user?.active) {
+      return null;
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    };
   } catch {
     return null;
   }

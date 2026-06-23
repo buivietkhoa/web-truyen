@@ -57,9 +57,11 @@ export default function AdminDeleteStoryButton({ storyId, storyTitle }: AdminDel
       className="admin-story-delete"
       onClick={handleDelete}
       disabled={loading}
+      title="Xóa truyện"
+      aria-label={`Xóa truyện ${storyTitle}`}
     >
       <FaTrashAlt />
-      {loading ? "Đang xóa" : "Xóa"}
+      <span>{loading ? "Đang xóa" : "Xóa"}</span>
     </button>
   );
 }

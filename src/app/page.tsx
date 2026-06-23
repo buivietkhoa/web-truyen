@@ -1,19 +1,56 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { FaBookOpen, FaStar } from "react-icons/fa";
 import HeroSlider from "@/components/home/HeroSlider";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
-import { FaBookOpen, FaStar } from "react-icons/fa";
 import { db } from "@/lib/db";
+import { absoluteUrl, defaultSiteDescription, defaultSiteName } from "@/lib/seo";
+import { getSiteSetting } from "@/lib/site-settings";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const setting = await getSiteSetting();
+  const siteName = setting.siteName || defaultSiteName;
+  const description = setting.siteDesc || defaultSiteDescription;
+
+  return {
+    title: siteName,
+    description,
+    alternates: {
+      canonical: absoluteUrl("/"),
+    },
+    openGraph: {
+      type: "website",
+      title: siteName,
+      description,
+      url: absoluteUrl("/"),
+      siteName,
+      images: setting.logoUrl ? [{ url: setting.logoUrl, alt: siteName }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: siteName,
+      description,
+      images: setting.logoUrl ? [setting.logoUrl] : undefined,
+    },
+  };
+}
 
 export default async function HomePage() {
   const [latestStories, completedStories] = await Promise.all([
     db.story.findMany({
+      where: {
+        published: true,
+      },
       orderBy: {
         updatedAt: "desc",
       },
       take: 8,
       include: {
         chapters: {
+          where: {
+            published: true,
+          },
           orderBy: {
             number: "desc",
           },
@@ -24,6 +61,7 @@ export default async function HomePage() {
     db.story.findMany({
       where: {
         status: "Hoàn thành",
+        published: true,
       },
       orderBy: {
         updatedAt: "desc",

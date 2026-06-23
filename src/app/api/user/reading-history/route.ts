@@ -7,14 +7,19 @@ export async function GET() {
   if (!currentUser) return NextResponse.json({ message: "Chưa đăng nhập." }, { status: 401 });
 
   const histories = await db.readingHistory.findMany({
-    where: { userId: currentUser.id },
+    where: {
+      userId: currentUser.id,
+      story: {
+        published: true,
+      },
+    },
     orderBy: { updatedAt: "desc" },
     include: {
       story: { select: { id: true, slug: true, title: true, coverImage: true } },
-      chapter: { select: { id: true, number: true, title: true } },
+      chapter: { select: { id: true, number: true, title: true, published: true } },
     },
   });
-  return NextResponse.json({ histories });
+  return NextResponse.json({ histories: histories.filter((item) => !item.chapter || item.chapter.published) });
 }
 
 export async function POST(request: Request) {
@@ -34,7 +39,14 @@ export async function POST(request: Request) {
   }
 
   const chapter = await db.chapter.findFirst({
-    where: { id: chapterId, storyId },
+    where: {
+      id: chapterId,
+      storyId,
+      published: true,
+      story: {
+        published: true,
+      },
+    },
     select: { id: true },
   });
   if (!chapter) return NextResponse.json({ message: "Chương không tồn tại." }, { status: 404 });
