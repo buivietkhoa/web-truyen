@@ -49,31 +49,26 @@ export default async function TimKiemPage({ searchParams }: Props) {
       {keyword && <SearchTracker query={keyword} />}
 
       <main className="search-page">
-        <section className="catalog-container">
-          <div className="catalog-heading">
-            <h1>Tìm kiếm truyện</h1>
-            <p>Nhập tên truyện hoặc thể loại bạn muốn tìm.</p>
-          </div>
+        <section className="search-page-container">
 
-          <form action="/tim-kiem" className="search-page-form">
-            <FaSearch />
-            <input name="q" defaultValue={q} placeholder="Tìm truyện..." />
-            <button type="submit">Tìm kiếm</button>
-          </form>
+          {/* Kết quả tìm kiếm */}
+          {keyword && (
+            <p className="search-result-count">
+              {results.length > 0
+                ? `${results.length} kết quả cho "${q}"`
+                : `Không tìm thấy kết quả cho "${q}"`}
+            </p>
+          )}
 
-          <div className="search-result-head">
-            {keyword ? (
-              <p>Tìm thấy {results.length} kết quả cho &quot;{q}&quot;.</p>
-            ) : (
-              <p>Chưa có từ khóa tìm kiếm.</p>
-            )}
-          </div>
-
-          {keyword && results.length === 0 ? (
-            <div className="empty-state">
-              <h2>Không tìm thấy truyện phù hợp</h2>
-              <p>Thử tìm bằng thể loại hoặc một từ khóa ngắn hơn.</p>
-              <Link href="/the-loai">Xem theo thể loại</Link>
+          {/* Kết quả */}
+          {!keyword ? (
+            <div className="search-empty-hint">
+              <FaSearch />
+              <p>Nhập tên truyện hoặc thể loại để bắt đầu tìm kiếm</p>
+            </div>
+          ) : results.length === 0 ? (
+            <div className="search-empty-hint">
+              <p>Không tìm thấy truyện phù hợp. Thử từ khóa khác hoặc <Link href="/the-loai">xem theo thể loại</Link>.</p>
             </div>
           ) : (
             <div className="catalog-story-grid">

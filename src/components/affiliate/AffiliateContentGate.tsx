@@ -157,8 +157,7 @@ export default function AffiliateContentGate({
             <div className="aff-card-body">
               <p className="aff-card-instruction">
                 Mời Quý độc giả{" "}
-                <strong>CLICK vào LINK LIÊN KẾT HOẶC ẢNH</strong> bên dưới{" "}
-                <span className="aff-card-cta-text">MỞ ỨNG DỤNG SHOPEE</span>{" "}
+                <strong>CLICK vào LINK LIÊN KẾT HOẶC ẢNH</strong> bên dưới
                 để tiếp tục đọc toàn bộ chương truyện!
               </p>
 

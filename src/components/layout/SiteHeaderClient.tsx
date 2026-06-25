@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FaBars, FaSearch, FaTimes, FaUser } from "react-icons/fa";
 import NotificationBell from "@/components/layout/NotificationBell";
+import ThemeToggle from "@/components/layout/ThemeToggle";
 import UserPresenceTracker from "@/components/analytics/UserPresenceTracker";
 import { categories } from "@/data/categories";
 
@@ -64,6 +65,7 @@ export default function SiteHeaderClient({
         </form>
 
         <div className="header-actions">
+          <ThemeToggle />
           {userName && <NotificationBell />}
 
           {userName ? (

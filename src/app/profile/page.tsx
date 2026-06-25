@@ -3,9 +3,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
-import { FaBookOpen, FaEdit, FaHeart, FaRegUserCircle, FaUser } from "react-icons/fa";
+import { FaBookOpen, FaHeart, FaRegUserCircle, FaUser } from "react-icons/fa";
 import ReadingHistoryModal from "@/components/profile/ReadingHistoryModal";
 import type { ReadingHistoryItem } from "@/components/profile/ReadingHistoryModal";
+import AvatarUpload from "@/components/profile/AvatarUpload";
 import ProfileLogoutButton from "@/components/profile/ProfileLogoutButton";
 import UpdateProfileModal from "@/components/profile/UpdateProfileModal";
 import { getCurrentUser } from "@/lib/auth";
@@ -137,15 +138,10 @@ export default async function ProfilePage() {
         <section className="container profile-shell">
           <aside className="profile-sidebar">
             <div className="profile-user-card">
-              <div className="profile-avatar">
-                <img
-                  src={user.avatar || "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?auto=format&fit=crop&w=160&h=160&q=80"}
-                  alt={user.name}
-                />
-                <button type="button" aria-label="Cập nhật ảnh đại diện">
-                  <FaEdit />
-                </button>
-              </div>
+              <AvatarUpload
+                currentAvatar={user.avatar || "https://images.unsplash.com/photo-1502685104226-ee32379fefbe?auto=format&fit=crop&w=160&h=160&q=80"}
+                userName={user.name}
+              />
 
               <h1>{user.name}</h1>
               <p>Thành viên Một Chạm</p>

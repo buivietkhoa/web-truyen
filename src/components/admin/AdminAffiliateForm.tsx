@@ -1,15 +1,12 @@
 "use client";
 
-import { FormEvent, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  FaClock,
   FaCloudUploadAlt,
   FaImage,
   FaLink,
-  FaMagic,
   FaPlus,
-  FaSave,
   FaTimes,
   FaTrash,
 } from "react-icons/fa";
@@ -39,13 +36,6 @@ interface AdminAffiliateFormProps {
   initialProducts: AffiliateProduct[];
 }
 
-const emptyProduct = {
-  title: "",
-  description: "",
-  affiliateUrl: "",
-  imageUrl: "",
-  enabled: true,
-};
 
 const defaultProductTitle = "Ưu đãi độc quyền";
 const defaultProductDescription = "Sản phẩm đang được giảm giá tại sàn liên kết.";
@@ -98,18 +88,6 @@ function cleanExternalUrl(value: string) {
   return /^[a-z][a-z\d+\-.]*:\/\//i.test(cleaned) ? cleaned : `https://${cleaned}`;
 }
 
-function cleanImageUrl(value: string) {
-  const cleaned = value
-    .trim()
-    .replace(/[\u200B-\u200D\uFEFF]/g, "")
-    .replace(/\s+/g, "");
-
-  if (!cleaned) {
-    return "";
-  }
-
-  return cleaned.startsWith("/uploads/") ? cleaned : cleanExternalUrl(cleaned);
-}
 
 function displayUrl(value: string) {
   try {
@@ -121,126 +99,71 @@ function displayUrl(value: string) {
   }
 }
 
+const PLATFORMS = [
+  { key: "shopee", label: "Shopee", color: "#ee4d2d", placeholder: "https://shopee.vn/..." },
+  { key: "tiktok", label: "TikTok", color: "#010101", placeholder: "https://shop.tiktok.com/..." },
+  { key: "lazada", label: "Lazada", color: "#0f146d", placeholder: "https://www.lazada.vn/..." },
+] as const;
+
+type PlatformKey = "shopee" | "tiktok" | "lazada";
+
+
 export default function AdminAffiliateForm({ initialSetting, initialProducts }: AdminAffiliateFormProps) {
   const router = useRouter();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [setting, setSetting] = useState(initialSetting);
   const [products, setProducts] = useState(initialProducts);
-  const [draft, setDraft] = useState(emptyProduct);
-  const [imageFile, setImageFile] = useState<File | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const draftImage = imageFile ? URL.createObjectURL(imageFile) : draft.imageUrl;
+  const [loadingKey, setLoadingKey] = useState<PlatformKey | null>(null);
 
-  const previewProduct =
-    products.find((product) => product.enabled) ||
-    (draft.affiliateUrl || draftImage
-      ? {
-          id: "draft",
-          title: defaultProductTitle,
-          description: defaultProductDescription,
-          affiliateUrl: draft.affiliateUrl || "https://shopee.vn",
-          imageUrl: draftImage,
-          enabled: true,
-      }
-      : null);
+  // Draft riêng cho mỗi sàn
+  const [links, setLinks] = useState<Record<PlatformKey, string>>({ shopee: "", tiktok: "", lazada: "" });
+  const [images, setImages] = useState<Record<PlatformKey, File | null>>({ shopee: null, tiktok: null, lazada: null });
+  const fileRefs = {
+    shopee: useRef<HTMLInputElement>(null),
+    tiktok: useRef<HTMLInputElement>(null),
+    lazada: useRef<HTMLInputElement>(null),
+  };
+
+  const previewProduct = products.find((p) => p.enabled) || null;
 
   const updateSetting = (name: keyof typeof setting, value: string | number | boolean) => {
-    setSetting((current) => ({
-      ...current,
-      [name]: value,
-    }));
+    setSetting((cur) => ({ ...cur, [name]: value }));
   };
 
-  const updateDraft = (name: keyof typeof draft, value: string | boolean) => {
-    setDraft((current) => ({
-      ...current,
-      [name]: value,
-    }));
-  };
-
-  const saveSetting = async () => {
-    setMessage("");
-    setError("");
-    setLoading(true);
-
-    try {
-      const response = await fetch("/api/admin/affiliate", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...setting,
-          affiliateUrl: setting.affiliateUrl || "https://shopee.vn",
-          title: setting.title || "Ưu đãi độc quyền",
-          description: setting.description || "Sản phẩm đang được giảm giá tại sàn liên kết.",
-          bannerImage: setting.bannerImage || "/img/cover.png",
-          buttonText: setting.buttonText || "Mua ngay",
-        }),
-      });
-
-      if (!response.ok) {
-        setError(await readErrorMessage(response, "Không thể lưu cấu hình affiliate."));
-        return;
-      }
-
-      setMessage("Đã lưu cấu hình hiển thị affiliate.");
-      router.refresh();
-    } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Không thể kết nối đến server.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const createProduct = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setMessage("");
-    setError("");
-
-    const affiliateUrl = cleanExternalUrl(draft.affiliateUrl);
-    const imageUrl = imageFile ? "" : cleanImageUrl(draft.imageUrl);
-
-    if (!affiliateUrl || (!imageFile && !imageUrl)) {
-      setError("Vui lòng nhập link affiliate và upload ảnh sản phẩm.");
+  const saveProduct = async (platform: PlatformKey) => {
+    setMessage(""); setError("");
+    const affiliateUrl = cleanExternalUrl(links[platform]);
+    const imgFile = images[platform];
+    if (!affiliateUrl || !imgFile) {
+      setError(`Vui lòng nhập link và ảnh cho ${platform}.`);
       return;
     }
-
-    setLoading(true);
-
+    setLoadingKey(platform);
     try {
-      const finalImageUrl = imageFile ? await uploadBanner(imageFile) : imageUrl;
-      const response = await fetch("/api/admin/affiliate/products", {
+      const imageUrl = await uploadBanner(imgFile);
+      const res = await fetch("/api/admin/affiliate/products", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: defaultProductTitle,
           description: defaultProductDescription,
           affiliateUrl,
-          imageUrl: finalImageUrl,
-          enabled: draft.enabled,
+          imageUrl,
+          enabled: true,
         }),
       });
-
-      if (!response.ok) {
-        setError(await readErrorMessage(response, "Không thể thêm sản phẩm affiliate."));
-        return;
-      }
-
-      const data = await response.json();
-      setProducts((current) => [data.product, ...current]);
-      setDraft(emptyProduct);
-      setImageFile(null);
-      setMessage("Đã thêm sản phẩm affiliate.");
+      if (!res.ok) { setError(await readErrorMessage(res, "Không thể thêm sản phẩm.")); return; }
+      const data = await res.json();
+      setProducts((cur) => [data.product, ...cur]);
+      setLinks((cur) => ({ ...cur, [platform]: "" }));
+      setImages((cur) => ({ ...cur, [platform]: null }));
+      setMessage(`Đã thêm sản phẩm ${PLATFORMS.find(p => p.key === platform)?.label}.`);
       router.refresh();
-    } catch (createError) {
-      setError(createError instanceof Error ? createError.message : "Không thể kết nối đến server.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Lỗi kết nối.");
     } finally {
-      setLoading(false);
+      setLoadingKey(null);
     }
   };
 
@@ -291,12 +214,23 @@ export default function AdminAffiliateForm({ initialSetting, initialProducts }: 
     setMessage("Đã xóa sản phẩm affiliate.");
   };
 
+  function getMarketplaceLabel(url: string) {
+    try {
+      const host = new URL(cleanExternalUrl(url)).hostname.toLowerCase();
+      if (host.includes("shopee")) return { label: "Shopee", color: "#ee4d2d" };
+      if (host.includes("tiktok")) return { label: "TikTok", color: "#010101" };
+      if (host.includes("lazada")) return { label: "Lazada", color: "#0f146d" };
+    } catch { /* ok */ }
+    return { label: "Khác", color: "#64748b" };
+  }
+
   return (
     <div className="aff-layout">
       <div className="aff-main">
-        {message && <div className="alert alert-success">{message}</div>}
-        {error && <div className="alert alert-danger">{error}</div>}
+        {message && <div className="alert alert-success mb-0">{message}</div>}
+        {error   && <div className="alert alert-danger  mb-0">{error}</div>}
 
+        {/* Status bar */}
         <section className={`aff-status-bar ${setting.enabled ? "on" : "off"}`}>
           <div className="aff-status-info">
             <span className="aff-status-dot" />
@@ -304,7 +238,7 @@ export default function AdminAffiliateForm({ initialSetting, initialProducts }: 
               <strong>{setting.enabled ? "Affiliate đang hoạt động" : "Affiliate đã tắt"}</strong>
               <p>
                 {setting.enabled
-                  ? "Modal sẽ chọn ngẫu nhiên một sản phẩm đang bật từ danh sách bên dưới."
+                  ? "Sản phẩm hiện theo thứ tự: Shopee → TikTok → Lazada · cứ 10 phút đọc hiện 1 lần."
                   : "Người đọc sẽ không thấy quảng cáo affiliate."}
               </p>
             </div>
@@ -314,177 +248,153 @@ export default function AdminAffiliateForm({ initialSetting, initialProducts }: 
             role="switch"
             aria-checked={setting.enabled}
             className={`aff-toggle ${setting.enabled ? "on" : ""}`}
-            onClick={() => updateSetting("enabled", !setting.enabled)}
-            disabled={loading}
+            onClick={async () => {
+              const next = !setting.enabled;
+              updateSetting("enabled", next);
+              await fetch("/api/admin/affiliate", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ...setting, enabled: next, effect: "fade" }),
+              });
+            }}
+            disabled={loadingKey !== null}
           />
         </section>
 
+        {/* Thêm sản phẩm theo từng sàn */}
         <section className="admin-create-card">
-          <div className="admin-affiliate-card-title">
-            <span>
-              <FaMagic />
-            </span>
-            <div>
-              <h3>Cấu hình modal</h3>
-              <p>Áp dụng chung cho toàn bộ sản phẩm affiliate.</p>
-            </div>
-          </div>
-
-          <div className="aff-settings-grid">
-            <label className="aff-setting-item">
-              <span>
-                <FaClock /> Thời gian chờ
-              </span>
-              <p>Số giây đếm ngược trước khi người đọc click được link hoặc ảnh.</p>
-              <input
-                type="number"
-                min={0}
-                max={60}
-                value={setting.waitSeconds}
-                onChange={(event) => updateSetting("waitSeconds", Number(event.target.value))}
-                disabled={loading}
-              />
-            </label>
-
-            <label className="aff-setting-item">
-              <span>
-                <FaMagic /> Hiệu ứng mở modal
-              </span>
-              <p>Kiểu hoạt ảnh khi modal xuất hiện.</p>
-              <select
-                value={setting.effect}
-                onChange={(event) => updateSetting("effect", event.target.value)}
-                disabled={loading}
-              >
-                <option value="fade">Fade In</option>
-                <option value="slide">Slide Up</option>
-                <option value="zoom">Zoom</option>
-              </select>
-            </label>
-          </div>
-
-          <div className="aff-save-row">
-            <button type="button" className="aff-save-btn" onClick={saveSetting} disabled={loading}>
-              <FaSave />
-              Lưu cấu hình modal
-            </button>
-          </div>
-        </section>
-
-        <form className="admin-create-card" onSubmit={createProduct}>
-          <div className="admin-affiliate-card-title">
-            <span>
-              <FaPlus />
-            </span>
+          <div className="aff-config-header">
+            <div className="aff-config-icon add"><FaPlus /></div>
             <div>
               <h3>Thêm sản phẩm affiliate</h3>
-              <p>Mỗi sản phẩm có link và ảnh riêng. Website sẽ chọn ngẫu nhiên sản phẩm đang bật.</p>
+              <p>Nhập link và ảnh riêng cho từng sàn.</p>
             </div>
           </div>
 
-          <label className="admin-create-block">
-            <span>Link Affiliate</span>
-            <div className="admin-slug-input">
-              <input
-                value={draft.affiliateUrl}
-                onChange={(event) => updateDraft("affiliateUrl", event.target.value)}
-                placeholder="https://shopee.vn/..."
-                disabled={loading}
-              />
-              <FaLink />
-            </div>
-          </label>
+          <div className="aff-platform-list">
+            {PLATFORMS.map(({ key, label, color, placeholder }) => {
+              const imgFile = images[key];
+              const preview = imgFile ? URL.createObjectURL(imgFile) : null;
+              const isLoading = loadingKey === key;
+              return (
+                <div key={key} className="aff-platform-row">
+                  <span className="aff-mp-badge" style={{ background: color }}>{label}</span>
 
-          <div className="aff-banner-row">
-            <div className="aff-banner-preview">
-              {draftImage ? (
-                <img src={draftImage} alt="Ảnh sản phẩm affiliate" />
-              ) : (
-                <div className="aff-banner-empty">
-                  <FaImage />
-                  <span>Chưa có ảnh sản phẩm</span>
+                  <div className="admin-slug-input aff-link-input">
+                    <input
+                      value={links[key]}
+                      onChange={(e) => setLinks((cur) => ({ ...cur, [key]: e.target.value }))}
+                      placeholder={placeholder}
+                      disabled={isLoading}
+                    />
+                    <FaLink />
+                  </div>
+
+                  <div
+                    className="aff-image-inline"
+                    onClick={() => fileRefs[key].current?.click()}
+                    role="button" tabIndex={0}
+                    title="Upload ảnh"
+                  >
+                    {preview
+                      ? <img src={preview} alt="preview" />
+                      : <><FaCloudUploadAlt /><span>Ảnh</span></>
+                    }
+                  </div>
+
+                  <button
+                    type="button"
+                    className="aff-save-btn"
+                    onClick={() => saveProduct(key)}
+                    disabled={isLoading || !links[key] || !imgFile}
+                  >
+                    <FaPlus /> {isLoading ? "..." : "Lưu"}
+                  </button>
+
+                  <input
+                    ref={fileRefs[key]}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif"
+                    hidden
+                    onChange={(e) => setImages((cur) => ({ ...cur, [key]: e.target.files?.[0] || null }))}
+                  />
                 </div>
-              )}
-            </div>
-            <div className="aff-banner-info">
-              <p>Ảnh này sẽ hiển thị trong modal đọc truyện và có thể click để mở link affiliate.</p>
-              <button
-                type="button"
-                className="aff-upload-btn"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={loading}
-              >
-                <FaCloudUploadAlt />
-                {imageFile ? "Đổi ảnh khác" : "Tải ảnh lên"}
-              </button>
-            </div>
+              );
+            })}
           </div>
+        </section>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/png,image/jpeg,image/webp,image/gif"
-            hidden
-            onChange={(event) => setImageFile(event.target.files?.[0] || null)}
-          />
-
-          <div className="aff-save-row">
-            <button type="submit" className="aff-save-btn" disabled={loading}>
-              <FaPlus />
-              {loading ? "Đang lưu..." : "Thêm sản phẩm"}
-            </button>
-          </div>
-        </form>
-
+        {/* Danh sách sản phẩm */}
         <section className="admin-create-card">
-          <div className="admin-affiliate-card-title">
-            <span>
-              <FaImage />
-            </span>
+          <div className="aff-config-header">
+            <div className="aff-config-icon list"><FaImage /></div>
             <div>
-              <h3>Danh sách sản phẩm affiliate</h3>
-              <p>{products.length} sản phẩm. Chỉ sản phẩm đang bật mới được chọn ngẫu nhiên.</p>
+              <h3>Danh sách sản phẩm</h3>
+              <p>{products.length} sản phẩm · thứ tự hiện: Shopee → TikTok → Lazada</p>
             </div>
           </div>
 
           {products.length === 0 ? (
-            <div className="admin-empty">
-              <h3>Chưa có sản phẩm affiliate</h3>
-              <p>Thêm ít nhất một sản phẩm để modal hiển thị trên trang đọc truyện.</p>
+            <div className="aff-empty-state">
+              <FaImage />
+              <p>Chưa có sản phẩm affiliate. Thêm ít nhất một sản phẩm để popup hoạt động.</p>
             </div>
           ) : (
-            <div className="affiliate-product-list">
-              {products.map((product) => (
-                <article className={`affiliate-product-item ${product.enabled ? "active" : ""}`} key={product.id}>
-                  <img src={product.imageUrl} alt={product.title} />
-                  <div>
-                    <h4>{product.title}</h4>
-                    <p>{product.description}</p>
-                    <a href={product.affiliateUrl} target="_blank" rel="noreferrer">
-                      {displayUrl(product.affiliateUrl)}
-                    </a>
+            <div className="aff-product-list">
+              {products.map((product, idx) => {
+                const mp = getMarketplaceLabel(product.affiliateUrl);
+                return (
+                  <div className={`aff-product-card ${product.enabled ? "" : "disabled"}`} key={product.id}>
+                    <div className="aff-product-thumb">
+                      <img src={product.imageUrl} alt={product.title} />
+                      <span className="aff-order-badge">{idx + 1}</span>
+                    </div>
+                    <div className="aff-product-info">
+                      <div className="aff-product-top">
+                        <span className="aff-mp-badge" style={{ background: mp.color }}>{mp.label}</span>
+                        <span className={`aff-status-chip ${product.enabled ? "on" : "off"}`}>
+                          {product.enabled ? "Đang bật" : "Đã tắt"}
+                        </span>
+                      </div>
+                      <a
+                        href={product.affiliateUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="aff-product-url"
+                      >
+                        {displayUrl(product.affiliateUrl)}
+                      </a>
+                    </div>
+                    <div className="aff-product-btns">
+                      <button
+                        type="button"
+                        className={`aff-toggle-btn ${product.enabled ? "on" : ""}`}
+                        onClick={() => toggleProduct(product)}
+                      >
+                        {product.enabled ? "Tắt" : "Bật"}
+                      </button>
+                      <button
+                        type="button"
+                        className="aff-delete-btn"
+                        onClick={() => deleteProduct(product.id)}
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
                   </div>
-                  <div className="affiliate-product-actions">
-                    <button type="button" onClick={() => toggleProduct(product)}>
-                      {product.enabled ? "Đang bật" : "Đã tắt"}
-                    </button>
-                    <button type="button" className="danger" onClick={() => deleteProduct(product.id)}>
-                      <FaTrash />
-                      Xóa
-                    </button>
-                  </div>
-                </article>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>
       </div>
 
+      {/* Preview */}
       <aside className="aff-preview-col">
         <div className="aff-preview-header">
           <div>
-            <h3>Xem trước modal</h3>
-            <p>Sản phẩm thực tế sẽ được chọn ngẫu nhiên khi người đọc mở chương.</p>
+            <h3>Xem trước popup</h3>
+            <p>Giao diện popup người đọc thấy.</p>
           </div>
           <span className={`aff-live-badge ${setting.enabled ? "active" : ""}`}>
             {setting.enabled ? "Đang bật" : "Đã tắt"}
@@ -497,17 +407,13 @@ export default function AdminAffiliateForm({ initialSetting, initialProducts }: 
             <button type="button" className="aff-modal-close" aria-label="Đóng">
               <FaTimes />
             </button>
-
             <div className="aff-modal-body">
               <p className="aff-modal-instruction">
-                Mời Quý độc giả <strong>CLICK VÀO LINK LIÊN KẾT HOẶC ẢNH</strong> bên dưới{" "}
-                <span style={{ color: "#dc2626", fontWeight: 800 }}>MỞ ỨNG DỤNG SHOPEE</span> để tiếp tục đọc!
+                Mời Quý độc giả <strong>CLICK VÀO LINK LIÊN KẾT HOẶC ẢNH</strong> bên dưới để ủng hộ tác giả!
               </p>
-
               <div className="aff-card-url-bar aff-preview-url">
                 {previewProduct ? displayUrl(previewProduct.affiliateUrl) : "Chưa có sản phẩm"}
               </div>
-
               <div className="aff-modal-banner-wrap">
                 {previewProduct?.imageUrl ? (
                   <img src={previewProduct.imageUrl} alt={previewProduct.title} className="aff-modal-banner" />
@@ -517,23 +423,15 @@ export default function AdminAffiliateForm({ initialSetting, initialProducts }: 
                     <span>Chưa có ảnh sản phẩm</span>
                   </div>
                 )}
-                {setting.waitSeconds > 0 && (
-                  <div className="aff-modal-countdown-overlay">
-                    <strong>{String(setting.waitSeconds).padStart(2, "0")}</strong>
-                    <span>giây</span>
-                  </div>
-                )}
               </div>
-
               <div className="aff-modal-preview-copy">
-                <strong>{previewProduct?.title || "Chưa có sản phẩm affiliate"}</strong>
-                <span>{previewProduct?.description || "Thêm sản phẩm để website chọn ngẫu nhiên."}</span>
+                <strong>{previewProduct?.title || "Chưa có sản phẩm"}</strong>
+                <span>{previewProduct?.description || "Thêm sản phẩm để popup hoạt động."}</span>
               </div>
             </div>
           </div>
         </div>
 
-        <p className="aff-preview-note">Trang đọc truyện sẽ chỉ hiện sản phẩm đang bật.</p>
       </aside>
     </div>
   );

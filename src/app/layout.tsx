@@ -1,8 +1,10 @@
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import { Open_Sans } from "next/font/google";
+import Script from "next/script";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./globals.css";
+import NavigationProgress from "@/components/layout/NavigationProgress";
 import { absoluteUrl, defaultSiteDescription, defaultSiteName, getSiteUrl } from "@/lib/seo";
 import { getSiteSetting } from "@/lib/site-settings";
 
@@ -56,7 +58,17 @@ export default async function RootLayout({
 
   return (
     <html lang="vi" className={openSans.variable} style={siteStyle} suppressHydrationWarning>
-      <body suppressHydrationWarning>{children}</body>
+      <body suppressHydrationWarning>
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme');var d=window.matchMedia('(prefers-color-scheme: dark)').matches;if(t==='dark'||(t===null&&d)){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();`,
+          }}
+        />
+        <NavigationProgress />
+        {children}
+      </body>
     </html>
   );
 }

@@ -37,6 +37,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local images / assets không dùng trong code
+/img
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

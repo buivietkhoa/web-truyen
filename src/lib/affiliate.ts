@@ -21,47 +21,65 @@ export async function getAffiliateProducts() {
   return db.affiliateProduct.findMany({ orderBy: { updatedAt: "desc" } });
 }
 
-function getMarketplaceRank(affiliateUrl: string) {
+function getMarketplace(affiliateUrl: string): "shopee" | "tiktok" | "lazada" | null {
   try {
-    const hostname = new URL(affiliateUrl).hostname.toLowerCase();
-
-    if (hostname.includes("shopee")) return 0;
-    if (hostname.includes("tiktok")) return 1;
-    if (hostname.includes("lazada")) return 2;
-  } catch {
-    // Invalid URLs are already rejected by the admin API. Keep a fallback rank
-    // so legacy rows cannot break the reader page.
-  }
-
-  return 3;
+    const host = new URL(affiliateUrl).hostname.toLowerCase();
+    if (host.includes("shopee")) return "shopee";
+    if (host.includes("tiktok")) return "tiktok";
+    if (host.includes("lazada")) return "lazada";
+  } catch { /* ok */ }
+  return null;
 }
 
-export async function getTimedAffiliatePopupData() {
+/** Hash đơn giản để chọn sản phẩm cố định theo storyId */
+function storyHash(storyId: string, salt: string): number {
+  const str = storyId + salt;
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(h);
+}
+
+/**
+ * Trả về đúng 3 sản phẩm cho story này: 1 Shopee + 1 TikTok + 1 Lazada
+ * Mỗi story luôn nhận cùng 3 sản phẩm (deterministic theo storyId)
+ */
+export async function getTimedAffiliatePopupData(storyId: string) {
   const setting = await getAffiliateSetting();
   if (!setting?.enabled) return null;
 
   const products = await db.affiliateProduct.findMany({
     where: { enabled: true },
     orderBy: { createdAt: "asc" },
-    select: {
-      id: true,
-      affiliateUrl: true,
-      title: true,
-      description: true,
-      imageUrl: true,
-    },
+    select: { id: true, affiliateUrl: true, title: true, description: true, imageUrl: true },
   });
 
   if (products.length === 0) return null;
 
-  const orderedProducts = products.sort((first, second) => {
-    return getMarketplaceRank(first.affiliateUrl) - getMarketplaceRank(second.affiliateUrl);
-  });
+  // Nhóm theo sàn
+  const groups: Record<"shopee" | "tiktok" | "lazada", typeof products> = {
+    shopee: [], tiktok: [], lazada: [],
+  };
+  for (const p of products) {
+    const mp = getMarketplace(p.affiliateUrl);
+    if (mp) groups[mp].push(p);
+  }
+
+  // Chọn 1 sản phẩm mỗi sàn theo hash của storyId
+  const selected = (["shopee", "tiktok", "lazada"] as const)
+    .map((mp) => {
+      const list = groups[mp];
+      if (list.length === 0) return null;
+      return list[storyHash(storyId, mp) % list.length];
+    })
+    .filter(Boolean) as typeof products;
+
+  if (selected.length === 0) return null;
 
   return {
-    waitSeconds: setting.waitSeconds,
     effect: setting.effect,
-    products: orderedProducts.map((p) => ({
+    products: selected.map((p) => ({
       productId: p.id,
       affiliateUrl: p.affiliateUrl,
       title: p.title,

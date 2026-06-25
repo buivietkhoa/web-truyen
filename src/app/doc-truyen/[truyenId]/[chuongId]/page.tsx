@@ -112,7 +112,7 @@ export default async function DocTruyenPage({ params }: Props) {
   }
 
   const { story, chapter, prevChapter, nextChapter } = data;
-  const affiliatePopupData = await getTimedAffiliatePopupData();
+  const affiliatePopupData = await getTimedAffiliatePopupData(story.id);
   const visibleContent = sanitizeRichContent(chapter.content);
 
   return (
@@ -173,18 +173,6 @@ export default async function DocTruyenPage({ params }: Props) {
               dangerouslySetInnerHTML={{ __html: visibleContent }}
             />
 
-            {affiliatePopupData && (
-              <AffiliateTimedPopup
-                key={chapter.id}
-                products={affiliatePopupData.products}
-                storyId={story.id}
-                chapterId={chapter.id}
-                chapterNumber={chapter.number}
-                waitSeconds={affiliatePopupData.waitSeconds}
-                effect={affiliatePopupData.effect}
-              />
-            )}
-
             <div className="reader-nav reader-nav-bottom">
               {prevChapter ? (
                 <Link href={`/doc-truyen/${story.slug}/${prevChapter.id}`}>
@@ -207,6 +195,18 @@ export default async function DocTruyenPage({ params }: Props) {
           </article>
         </main>
       </ReaderToolbar>
+
+      {affiliatePopupData && (
+        <AffiliateTimedPopup
+          key={chapter.id}
+          products={affiliatePopupData.products}
+          storyId={story.id}
+          chapterId={chapter.id}
+          chapterNumber={chapter.number}
+          waitSeconds={0}
+          effect={affiliatePopupData.effect}
+        />
+      )}
 
       <SiteFooter />
     </>

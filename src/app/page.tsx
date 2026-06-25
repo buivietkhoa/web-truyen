@@ -158,10 +158,11 @@ export default async function HomePage() {
                     {completedStories.map((story) => (
                       <div className="col-lg-3 col-md-6 mb-3" key={story.id}>
                         <Link href={`/truyen/${story.slug}`} className="completed-item">
-                          <FaBookOpen />
-                          <div>
+                          <img src={story.coverImage} alt={story.title} className="completed-item-cover" />
+                          <div className="completed-item-info">
                             <h4>{story.title}</h4>
-                            <p>{story.views.toLocaleString("vi-VN")} lượt đọc</p>
+                            <p>{story.category}</p>
+                            <small>{story.views.toLocaleString("vi-VN")} lượt đọc</small>
                           </div>
                           <span>Full</span>
                         </Link>
