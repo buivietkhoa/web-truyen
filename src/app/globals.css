@@ -1992,6 +1992,10 @@ body {
   gap: 12px;
 }
 
+.auth-social-buttons.auth-social-single {
+  grid-template-columns: 1fr;
+}
+
 .auth-social-buttons button {
   height: 42px;
   border: 1px solid #cbd5e1;

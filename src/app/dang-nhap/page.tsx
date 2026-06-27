@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { FaEye, FaEyeSlash, FaFacebookF, FaGoogle } from "react-icons/fa";
+import { FaEye, FaEyeSlash, FaGoogle } from "react-icons/fa";
 
 async function readErrorMessage(response: Response, fallback: string) {
   try {
@@ -217,14 +217,10 @@ export default function DangNhapPage() {
           <span />
         </div>
 
-        <div className="auth-social-buttons">
+        <div className="auth-social-buttons auth-social-single">
           <button type="button" onClick={() => loginWithProvider("google")} disabled={loading}>
             <FaGoogle />
-            Google
-          </button>
-          <button type="button" onClick={() => loginWithProvider("facebook")} disabled={loading}>
-            <FaFacebookF />
-            Facebook
+            Đăng nhập với Google
           </button>
         </div>
 
