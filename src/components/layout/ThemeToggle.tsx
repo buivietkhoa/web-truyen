@@ -1,28 +1,43 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { FaMoon, FaSun } from "react-icons/fa";
 
-export default function ThemeToggle() {
-  const [isDark, setIsDark] = useState(false);
-  const [mounted, setMounted] = useState(false);
+const THEME_CHANGE_EVENT = "mot-cham-theme-change";
 
-  useEffect(() => {
-    setMounted(true);
-    const saved = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const dark = saved === "dark" || (!saved && prefersDark);
-    setIsDark(dark);
-  }, []);
+function getThemeSnapshot() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  const saved = localStorage.getItem("theme");
+  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  return saved === "dark" || (!saved && prefersDark);
+}
+
+function subscribeToTheme(callback: () => void) {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
+  window.addEventListener("storage", callback);
+  window.addEventListener(THEME_CHANGE_EVENT, callback);
+
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener(THEME_CHANGE_EVENT, callback);
+  };
+}
+
+export default function ThemeToggle() {
+  const isDark = useSyncExternalStore(subscribeToTheme, getThemeSnapshot, () => false);
 
   const toggle = () => {
     const next = !isDark;
-    setIsDark(next);
     document.documentElement.setAttribute("data-theme", next ? "dark" : "light");
     localStorage.setItem("theme", next ? "dark" : "light");
+    window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
   };
-
-  if (!mounted) return <div style={{ width: 38, height: 38 }} />;
 
   return (
     <button

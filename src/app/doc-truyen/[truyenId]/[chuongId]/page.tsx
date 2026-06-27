@@ -15,6 +15,8 @@ import { sanitizeRichContent } from "@/lib/sanitize-content";
 import { absoluteUrl, truncateMeta } from "@/lib/seo";
 import { getSiteSetting } from "@/lib/site-settings";
 
+export const dynamic = "force-dynamic";
+
 interface Props {
   params: Promise<{
     truyenId: string;
@@ -203,7 +205,7 @@ export default async function DocTruyenPage({ params }: Props) {
           storyId={story.id}
           chapterId={chapter.id}
           chapterNumber={chapter.number}
-          waitSeconds={0}
+          waitSeconds={affiliatePopupData.waitSeconds}
           effect={affiliatePopupData.effect}
         />
       )}

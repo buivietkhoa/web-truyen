@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FaBookOpen, FaStar } from "react-icons/fa";
+import { FaStar } from "react-icons/fa";
+import CompletedStoriesCarousel from "@/components/home/CompletedStoriesCarousel";
 import HeroSlider from "@/components/home/HeroSlider";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
@@ -121,10 +122,9 @@ export default async function HomePage() {
             </section>
 
             <section className="container mt-5 home-main-section">
-              <div className="section-heading">
+              <div className="section-heading latest-section-heading">
                 <div>
                   <h2>Truyện Mới Cập Nhật</h2>
-                  <p>Những truyện được admin thêm hoặc cập nhật gần đây.</p>
                 </div>
                 <Link href="/truyen">Tất cả</Link>
               </div>
@@ -154,21 +154,16 @@ export default async function HomePage() {
                 {completedStories.length === 0 ? (
                   <p>Chưa có truyện hoàn thành.</p>
                 ) : (
-                  <div className="row">
-                    {completedStories.map((story) => (
-                      <div className="col-lg-3 col-md-6 mb-3" key={story.id}>
-                        <Link href={`/truyen/${story.slug}`} className="completed-item">
-                          <img src={story.coverImage} alt={story.title} className="completed-item-cover" />
-                          <div className="completed-item-info">
-                            <h4>{story.title}</h4>
-                            <p>{story.category}</p>
-                            <small>{story.views.toLocaleString("vi-VN")} lượt đọc</small>
-                          </div>
-                          <span>Full</span>
-                        </Link>
-                      </div>
-                    ))}
-                  </div>
+                  <CompletedStoriesCarousel
+                    stories={completedStories.map((story) => ({
+                      id: story.id,
+                      slug: story.slug,
+                      title: story.title,
+                      category: story.category,
+                      coverImage: story.coverImage,
+                      views: story.views,
+                    }))}
+                  />
                 )}
               </div>
             </section>

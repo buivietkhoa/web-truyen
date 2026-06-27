@@ -79,6 +79,7 @@ export async function getTimedAffiliatePopupData(storyId: string) {
 
   return {
     effect: setting.effect,
+    waitSeconds: setting.waitSeconds,
     products: selected.map((p) => ({
       productId: p.id,
       affiliateUrl: p.affiliateUrl,

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { FaBookOpen, FaEye, FaStar } from "react-icons/fa";
+import { FaBookOpen, FaChevronDown, FaEye, FaStar } from "react-icons/fa";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
 import FavoriteButton from "@/components/story/FavoriteButton";
+import RelatedStoriesCarousel from "@/components/story/RelatedStoriesCarousel";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { sanitizeRichContent } from "@/lib/sanitize-content";
@@ -118,14 +119,6 @@ export default async function ChiTietTruyenPage({ params }: Props) {
 
       <main className="story-detail-page">
         <div className="container detail-container">
-          <nav className="story-breadcrumb">
-            <Link href="/">Trang chủ</Link>
-            <span>{">"}</span>
-            <Link href="/the-loai">{story.category}</Link>
-            <span>{">"}</span>
-            <strong>{story.title}</strong>
-          </nav>
-
           <section className="story-hero">
             <div className="story-cover image-skeleton">
               <img src={story.coverImage} alt={story.title} loading="lazy" />
@@ -184,28 +177,71 @@ export default async function ChiTietTruyenPage({ params }: Props) {
 
           <section className="story-content-grid">
             <div id="chapters" className="chapter-panel">
-              <div className="chapter-panel-header">
-                <h2>Danh sách chương</h2>
-                <span>Tổng cộng: {story.chapters.length} chương</span>
-              </div>
-
               {story.chapters.length === 0 ? (
-                <div className="empty-state">
-                  <h2>Chưa có chương</h2>
-                  <p>Admin có thể thêm chương cho truyện này trong trang quản trị.</p>
-                  <Link href="/admin/truyen">Vào quản trị truyện</Link>
-                </div>
+                <>
+                  <div className="chapter-panel-header">
+                    <h2>Danh sách chương</h2>
+                    <span>0 chương</span>
+                  </div>
+                  <div className="empty-state">
+                    <h2>Chưa có chương</h2>
+                    <p>Admin có thể thêm chương cho truyện này trong trang quản trị.</p>
+                    <Link href="/admin/truyen">Vào quản trị truyện</Link>
+                  </div>
+                </>
               ) : (
-                <div className="chapter-list">
-                  {story.chapters.map((chapter) => (
-                    <Link href={`/doc-truyen/${story.slug}/${chapter.id}`} className="chapter-row" key={chapter.id}>
-                      <span>
-                        Chương {chapter.number}: {chapter.title}
+                <>
+                  <div className="chapter-desktop-list">
+                    <div className="chapter-panel-header">
+                      <h2>Danh sách chương</h2>
+                      <span>Tổng cộng: {story.chapters.length} chương</span>
+                    </div>
+
+                    <div className="chapter-list">
+                      {story.chapters.map((chapter) => (
+                        <Link href={`/doc-truyen/${story.slug}/${chapter.id}`} className="chapter-row" key={chapter.id}>
+                          <span className="chapter-index" aria-hidden="true">
+                            {chapter.number}
+                          </span>
+                          <span className="chapter-title">
+                            <span className="chapter-label">Chương {chapter.number}: </span>
+                            <strong>{chapter.title}</strong>
+                          </span>
+                          <small className="chapter-date">
+                            {chapter.createdAt.toLocaleDateString("vi-VN")}
+                          </small>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+
+                  <details className="chapter-disclosure chapter-mobile-disclosure">
+                    <summary className="chapter-panel-header">
+                      <h2>Danh sách chương</h2>
+                      <span className="chapter-summary-action">
+                        {story.chapters.length} chương
+                        <FaChevronDown aria-hidden="true" />
                       </span>
-                      <small>{chapter.createdAt.toLocaleDateString("vi-VN")}</small>
-                    </Link>
-                  ))}
-                </div>
+                    </summary>
+
+                    <div className="chapter-list">
+                      {story.chapters.map((chapter) => (
+                        <Link href={`/doc-truyen/${story.slug}/${chapter.id}`} className="chapter-row" key={chapter.id}>
+                          <span className="chapter-index" aria-hidden="true">
+                            {chapter.number}
+                          </span>
+                          <span className="chapter-title">
+                            <span className="chapter-label">Chương {chapter.number}: </span>
+                            <strong>{chapter.title}</strong>
+                          </span>
+                          <small className="chapter-date">
+                            {chapter.createdAt.toLocaleDateString("vi-VN")}
+                          </small>
+                        </Link>
+                      ))}
+                    </div>
+                  </details>
+                </>
               )}
             </div>
 
@@ -216,16 +252,16 @@ export default async function ChiTietTruyenPage({ params }: Props) {
                 {relatedStories.length === 0 ? (
                   <p>Chưa có truyện cùng thể loại.</p>
                 ) : (
-                  relatedStories.map((item) => (
-                    <Link href={`/truyen/${item.slug}`} className="related-item" key={item.id}>
-                      <img src={item.coverImage} alt={item.title} loading="lazy" />
-                      <div>
-                        <h3>{item.title}</h3>
-                        <p>{item.category}</p>
-                        <span>{item.status}</span>
-                      </div>
-                    </Link>
-                  ))
+                  <RelatedStoriesCarousel
+                    stories={relatedStories.map((story) => ({
+                      id: story.id,
+                      slug: story.slug,
+                      title: story.title,
+                      category: story.category,
+                      status: story.status,
+                      coverImage: story.coverImage,
+                    }))}
+                  />
                 )}
               </div>
             </aside>

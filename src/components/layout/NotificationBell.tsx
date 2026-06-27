@@ -119,11 +119,21 @@ export default function NotificationBell() {
               <strong>Thông báo</strong>
               <span>{unreadCount > 0 ? `${unreadCount} chưa đọc` : "Đã đọc tất cả"}</span>
             </div>
-            {unreadCount > 0 && (
-              <button type="button" onClick={() => void markAllRead()}>
-                <FaCheckDouble /> Đọc tất cả
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {unreadCount > 0 && (
+                <button type="button" onClick={() => void markAllRead()}>
+                  <FaCheckDouble /> Đọc tất cả
+                </button>
+              )}
+              <button
+                type="button"
+                className="notification-close-btn"
+                onClick={() => setOpen(false)}
+                aria-label="Đóng thông báo"
+              >
+                ✕
               </button>
-            )}
+            </div>
           </div>
 
           <div className="notification-list">

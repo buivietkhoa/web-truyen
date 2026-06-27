@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
+import FavoriteStoriesCarousel from "@/components/profile/FavoriteStoriesCarousel";
 import { FaBookOpen, FaHeart, FaRegUserCircle, FaUser } from "react-icons/fa";
 import ReadingHistoryModal from "@/components/profile/ReadingHistoryModal";
 import type { ReadingHistoryItem } from "@/components/profile/ReadingHistoryModal";
@@ -104,10 +105,12 @@ export default async function ProfilePage() {
     redirect("/dang-nhap");
   }
 
+  const now = new Date().getTime();
+
   const historyItems: ReadingHistoryItem[] = readingHistories.map((history) => {
     const elapsedDays = Math.max(
       0,
-      Math.round((Date.now() - history.updatedAt.getTime()) / 86_400_000)
+      Math.round((now - history.updatedAt.getTime()) / 86_400_000)
     );
 
     return {
@@ -212,15 +215,15 @@ export default async function ProfilePage() {
                   <Link href="/truyen">Khám phá truyện</Link>
                 </div>
               ) : (
-                <div className="profile-story-grid">
-                  {favoriteStories.map(({ story }) => (
-                    <Link href={`/truyen/${story.slug}`} className="profile-story-card" key={story.id}>
-                      <img src={story.coverImage} alt={story.title} loading="lazy" />
-                      <h3>{story.title}</h3>
-                      <p>{story.chapters[0] ? `Chương ${story.chapters[0].number}` : "Chưa có chương"}</p>
-                    </Link>
-                  ))}
-                </div>
+                <FavoriteStoriesCarousel
+                  stories={favoriteStories.map(({ story }) => ({
+                    id: story.id,
+                    slug: story.slug,
+                    title: story.title,
+                    coverImage: story.coverImage,
+                    latestChapterNumber: story.chapters[0]?.number ?? null,
+                  }))}
+                />
               )}
             </section>
           </div>

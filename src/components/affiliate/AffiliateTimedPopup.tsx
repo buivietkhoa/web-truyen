@@ -1,41 +1,66 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { FaLock, FaTimes } from "react-icons/fa";
 
-/** localStorage: số link đã hiện cho từng truyện */
-function shownKey(storyId: string) { return `aff_shown_${storyId}`; }
-/** sessionStorage: thứ tự random cho từng truyện trong session này */
-function orderKey(storyId: string) { return `aff_order_${storyId}`; }
+/**
+ * State lưu vào localStorage theo storyId:
+ * {
+ *   order: [2, 0, 1]   — thứ tự random của 3 sản phẩm (tạo 1 lần, giữ mãi)
+ *   clicked: [2, 4]    — danh sách chương user đã CLICK link thành công
+ * }
+ *
+ * Khi clicked.length === products.length → dừng hoàn toàn.
+ * Click X không được tính vào clicked → reload sẽ hiện lại.
+ */
+/**
+ * Dùng sessionStorage → tự xóa khi đóng browser.
+ * Mỗi lần mở browser mới, chapter 2 sẽ hiện popup lại từ đầu.
+ */
+const SS_KEY = "aff_s1";
 
-function readInt(key: string, storage: Storage = localStorage): number {
-  try { const v = Number(storage.getItem(key) || "0"); return Number.isFinite(v) ? v : 0; }
-  catch { return 0; }
-}
-function writeInt(key: string, value: number, storage: Storage = localStorage) {
-  try { storage.setItem(key, String(value)); } catch { /* ok */ }
+interface AffState {
+  order: number[];     // thứ tự hiển thị sản phẩm (random mỗi session)
+  clicked: number[];   // chương đã click thành công trong session này
 }
 
-/** Shuffle mảng và lưu thứ tự vào sessionStorage để nhất quán trong session */
-function getOrCreateOrder(storyId: string, length: number): number[] {
+function ssKey(storyId: string) {
+  return `${SS_KEY}_${storyId}`;
+}
+
+function readState(storyId: string): AffState | null {
   try {
-    const saved = sessionStorage.getItem(orderKey(storyId));
-    if (saved) {
-      const parsed: number[] = JSON.parse(saved);
-      if (parsed.length === length) return parsed;
+    const raw = sessionStorage.getItem(ssKey(storyId));
+    if (!raw) return null;
+    const p = JSON.parse(raw) as Partial<AffState>;
+    if (Array.isArray(p.order) && Array.isArray(p.clicked)) {
+      return { order: p.order, clicked: p.clicked };
     }
-    // Tạo thứ tự random mới
-    const order = Array.from({ length }, (_, i) => i);
-    for (let i = order.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [order[i], order[j]] = [order[j], order[i]];
-    }
-    sessionStorage.setItem(orderKey(storyId), JSON.stringify(order));
-    return order;
+    return null;
   } catch {
-    return Array.from({ length }, (_, i) => i);
+    return null;
   }
 }
+
+function writeState(storyId: string, state: AffState) {
+  try {
+    sessionStorage.setItem(ssKey(storyId), JSON.stringify(state));
+  } catch { /* private browsing */ }
+}
+
+/** Tạo state lần đầu trong session: shuffle random thứ tự sản phẩm */
+function createState(storyId: string, length: number): AffState {
+  const order = Array.from({ length }, (_, i) => i);
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [order[i], order[j]] = [order[j], order[i]];
+  }
+  const state: AffState = { order, clicked: [] };
+  writeState(storyId, state);
+  return state;
+}
+
+// ─────────────────────────────────────────────
 
 interface Product {
   productId: string;
@@ -46,12 +71,23 @@ interface Product {
 }
 
 interface Props {
-  products: Product[];   // đã là [Shopee, TikTok, Lazada] từ server
+  products: Product[];
   storyId: string;
   chapterId: string;
   chapterNumber: number;
   waitSeconds: number;
   effect: string;
+}
+
+function createDisplayUrl(value: string) {
+  try {
+    const url = new URL(value);
+    const path = `${url.pathname}${url.search}`.replace(/\/$/, "");
+    const compact = path.length > 18 ? `${path.slice(0, 18)}...` : path;
+    return `${url.hostname}${compact}`;
+  } catch {
+    return value.length > 34 ? `${value.slice(0, 34)}...` : value;
+  }
 }
 
 export default function AffiliateTimedPopup({
@@ -64,38 +100,39 @@ export default function AffiliateTimedPopup({
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
   const [modalOpen, setModalOpen]         = useState(false);
   const [locked, setLocked]               = useState(false);
-  const orderRef = useRef<number[] | null>(null);
 
-  // Hiện popup ở chương chẵn: 2, 4, 6
   useEffect(() => {
     if (products.length === 0) return;
 
-    // Chỉ trigger ở chương 2, 4, 6 (chẵn >= 2)
+    // Chỉ trigger ở chương chẵn >= 2 (chương 2, 4, 6)
     if (chapterNumber < 2 || chapterNumber % 2 !== 0) return;
 
-    // Số link đã hiện cho truyện này (tối đa = số sản phẩm)
-    const shown = readInt(shownKey(storyId));
-    if (shown >= products.length) return; // đã đủ 3 lần
-
-    // Lấy thứ tự random (nhất quán trong session)
-    if (!orderRef.current) {
-      orderRef.current = getOrCreateOrder(storyId, products.length);
+    // Đọc hoặc tạo state từ localStorage
+    let state = readState(storyId);
+    if (!state || state.order.length !== products.length) {
+      state = createState(storyId, products.length);
     }
-    const productIndex = orderRef.current[shown];
+
+    // Đã click đủ 3 sàn → dừng hoàn toàn
+    if (state.clicked.length >= products.length) return;
+
+    // Chương này đã click rồi → không hiện lại
+    if (state.clicked.includes(chapterNumber)) return;
+
+    // Lấy sản phẩm tiếp theo theo thứ tự random đã lưu
+    const productIndex = state.order[state.clicked.length];
     const product = products[productIndex];
     if (!product) return;
 
-    const timer = window.setTimeout(() => {
-      setActiveProduct(product);
-      setLocked(false);
-      setModalOpen(true);
-    }, 600);
+    // Hiện ngay, không delay
+    setActiveProduct(product);
+    setLocked(false);
+    setModalOpen(true);
 
-    return () => window.clearTimeout(timer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chapterId]);
 
-  // Khoá cuộn + blur content
+  // Khoá cuộn + blur content khi popup mở
   useEffect(() => {
     const container = document.querySelector<HTMLElement>(".reader-container");
     if (modalOpen) {
@@ -111,31 +148,31 @@ export default function AffiliateTimedPopup({
     };
   }, [modalOpen]);
 
-  function createDisplayUrl(value: string) {
-    try {
-      const url = new URL(value);
-      const path = `${url.pathname}${url.search}`.replace(/\/$/, "");
-      const compact = path.length > 18 ? `${path.slice(0, 18)}...` : path;
-      return `${url.hostname}${compact}`;
-    } catch {
-      return value.length > 34 ? `${value.slice(0, 34)}...` : value;
-    }
-  }
-
   const trackedUrl = activeProduct
     ? `/api/affiliate/click?productId=${encodeURIComponent(activeProduct.productId)}&storyId=${encodeURIComponent(storyId)}&chapterId=${encodeURIComponent(chapterId)}`
     : "";
 
-  // Ấn X → khoá chương (không tăng shown → refresh sẽ hiện lại)
+  /**
+   * Ấn X → khoá chương
+   * KHÔNG ghi vào localStorage → reload sẽ hiện popup lại cho chương này
+   */
   const handleClose = () => {
     setModalOpen(false);
     setLocked(true);
   };
 
-  // Ấn link → tăng shown, mở khoá
+  /**
+   * Ấn link → đánh dấu chương này đã click thành công
+   * Ghi chapterNumber vào clicked[] trong localStorage
+   */
   const handleAffiliateClick = () => {
-    const shown = readInt(shownKey(storyId));
-    writeInt(shownKey(storyId), shown + 1);
+    const state = readState(storyId);
+    if (state && !state.clicked.includes(chapterNumber)) {
+      writeState(storyId, {
+        ...state,
+        clicked: [...state.clicked, chapterNumber],
+      });
+    }
     setModalOpen(false);
     setLocked(false);
   };
@@ -198,7 +235,11 @@ export default function AffiliateTimedPopup({
               className="aff-card-banner-link"
               onClick={handleAffiliateClick}
             >
-              <img src={activeProduct.bannerImage} alt="Ảnh sản phẩm" className="aff-card-banner" />
+              <img
+                src={activeProduct.bannerImage}
+                alt="Ảnh sản phẩm"
+                className="aff-card-banner"
+              />
             </a>
           )}
         </div>

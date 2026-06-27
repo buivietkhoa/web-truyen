@@ -84,6 +84,13 @@ export default function SiteHeaderClient({
           )}
         </div>
 
+        {/* Bell hiện trực tiếp trong header trên mobile */}
+        {userName && (
+          <div className="mobile-header-bell">
+            <NotificationBell />
+          </div>
+        )}
+
         <button
           className="mobile-menu-toggle"
           type="button"
@@ -103,6 +110,11 @@ export default function SiteHeaderClient({
       />
 
       <div className={`mobile-menu-panel ${isMenuOpen ? "open" : ""}`}>
+        {/* Toggle dark mode */}
+        <div className="mobile-menu-actions">
+          <ThemeToggle />
+        </div>
+
         <form className="mobile-menu-search" action="/tim-kiem">
           <FaSearch />
           <input name="q" placeholder="Tìm truyện..." />
