@@ -21,6 +21,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     metadataBase: new URL(getSiteUrl()),
+    verification: {
+      google: "LPbrMBMwjsYqs2SKs3H85MhIRwwFgYZQAVQ0pLt5MpI",
+    },
     title: {
       default: siteName,
       template: `%s | ${siteName}`,
