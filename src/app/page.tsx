@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FaStar } from "react-icons/fa";
+import { FaArrowRight, FaStar } from "react-icons/fa";
 import CompletedStoriesCarousel from "@/components/home/CompletedStoriesCarousel";
 import HeroSlider from "@/components/home/HeroSlider";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
 import { db } from "@/lib/db";
+import { withDatabaseRetry } from "@/lib/db-retry";
 import { absoluteUrl, defaultSiteDescription, defaultSiteName } from "@/lib/seo";
 import { getSiteSetting } from "@/lib/site-settings";
 
@@ -38,38 +39,40 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  const [latestStories, completedStories] = await Promise.all([
-    db.story.findMany({
-      where: {
-        published: true,
-      },
-      orderBy: {
-        updatedAt: "desc",
-      },
-      take: 8,
-      include: {
-        chapters: {
-          where: {
-            published: true,
-          },
-          orderBy: {
-            number: "desc",
-          },
-          take: 1,
+  const [latestStories, completedStories] = await withDatabaseRetry(() =>
+    Promise.all([
+      db.story.findMany({
+        where: {
+          published: true,
         },
-      },
-    }),
-    db.story.findMany({
-      where: {
-        status: "Hoàn thành",
-        published: true,
-      },
-      orderBy: {
-        updatedAt: "desc",
-      },
-      take: 4,
-    }),
-  ]);
+        orderBy: {
+          updatedAt: "desc",
+        },
+        take: 8,
+        include: {
+          chapters: {
+            where: {
+              published: true,
+            },
+            orderBy: {
+              number: "desc",
+            },
+            take: 1,
+          },
+        },
+      }),
+      db.story.findMany({
+        where: {
+          status: "Hoàn thành",
+          published: true,
+        },
+        orderBy: {
+          updatedAt: "desc",
+        },
+        take: 4,
+      }),
+    ])
+  );
 
   const heroStories = latestStories.slice(0, 3).map((story) => ({
     slug: story.slug,
@@ -116,7 +119,10 @@ export default async function HomePage() {
                     </Link>
                   ))}
 
-                  <Link href="/truyen" className="small-link">Xem thêm đề cử</Link>
+                  <Link href="/truyen" className="small-link">
+                    <span>Xem thêm đề cử</span>
+                    <FaArrowRight aria-hidden="true" />
+                  </Link>
                 </div>
               </div>
             </section>

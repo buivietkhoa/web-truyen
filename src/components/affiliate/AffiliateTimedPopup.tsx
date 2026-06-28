@@ -125,10 +125,13 @@ export default function AffiliateTimedPopup({
     if (!product) return;
 
     // Hiện ngay, không delay
-    setActiveProduct(product);
-    setLocked(false);
-    setModalOpen(true);
+    const openTimer = window.setTimeout(() => {
+      setActiveProduct(product);
+      setLocked(false);
+      setModalOpen(true);
+    }, 0);
 
+    return () => window.clearTimeout(openTimer);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chapterId]);
 
