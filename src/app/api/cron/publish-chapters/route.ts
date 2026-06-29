@@ -1,15 +1,10 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
-// Endpoint này được Vercel Cron gọi tự động hàng ngày lúc 7AM giờ VN (0AM UTC)
-// Cũng có thể gọi thủ công từ admin với header x-cron-secret
-
 export async function GET(request: Request) {
   const secret = request.headers.get("x-cron-secret");
   const envSecret = process.env.CRON_SECRET;
-
-  // Xác thực: phải có đúng secret hoặc là Vercel Cron
-  const isVercelCron = request.headers.get("x-vercel-signature") !== null;
+  const isVercelCron = request.headers.get("authorization") === `Bearer ${envSecret}`;
   const isManual = envSecret && secret === envSecret;
 
   if (!isVercelCron && !isManual && process.env.NODE_ENV === "production") {
@@ -18,12 +13,9 @@ export async function GET(request: Request) {
 
   const now = new Date();
 
-  // Tìm tất cả chương đã đến giờ publish nhưng chưa published
+  // 1. Tìm tất cả chương đã đến giờ publish
   const chaptersToPublish = await db.chapter.findMany({
-    where: {
-      published: false,
-      scheduledAt: { lte: now },
-    },
+    where: { published: false, scheduledAt: { lte: now } },
     select: { id: true, number: true, title: true, storyId: true },
   });
 
@@ -31,25 +23,35 @@ export async function GET(request: Request) {
     return NextResponse.json({ published: 0, message: "Không có chương nào cần publish." });
   }
 
-  // Publish tất cả các chương đã đến giờ
+  // 2. Publish các chương đã đến giờ
   await db.chapter.updateMany({
-    where: {
-      id: { in: chaptersToPublish.map((c) => c.id) },
-    },
-    data: {
-      published: true,
-      scheduledAt: null, // xóa lịch sau khi đã publish
-    },
+    where: { id: { in: chaptersToPublish.map((c) => c.id) } },
+    data: { published: true, scheduledAt: null },
   });
 
-  console.log(`[CRON] Published ${chaptersToPublish.length} chapters at ${now.toISOString()}`);
+  // 3. Kiểm tra từng truyện — nếu hết chương nháp thì chuyển "Hoàn thành"
+  const affectedStoryIds = [...new Set(chaptersToPublish.map((c) => c.storyId))];
+
+  const completedStories: string[] = [];
+  for (const storyId of affectedStoryIds) {
+    const remainingDrafts = await db.chapter.count({
+      where: { storyId, published: false },
+    });
+
+    if (remainingDrafts === 0) {
+      await db.story.update({
+        where: { id: storyId },
+        data: { status: "Hoàn thành" },
+      });
+      completedStories.push(storyId);
+    }
+  }
+
+  console.log(`[CRON] ${now.toISOString()} — Published ${chaptersToPublish.length} chapters, ${completedStories.length} stories completed`);
 
   return NextResponse.json({
     published: chaptersToPublish.length,
-    chapters: chaptersToPublish.map((c) => ({
-      id: c.id,
-      number: c.number,
-      title: c.title,
-    })),
+    completedStories: completedStories.length,
+    chapters: chaptersToPublish.map((c) => ({ id: c.id, number: c.number, title: c.title })),
   });
 }

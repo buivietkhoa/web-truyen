@@ -13285,13 +13285,26 @@ body:has(.admin-settings-page) { overflow: hidden; }
   color: #fde68a;
 }
 
-/* Schedule Chapter Panel */
-.schedule-panel { margin-bottom: 16px; }
+/* Schedule Chapter Panel — isolated block */
+.schedule-panel {
+  display: block !important;
+  width: 100%;
+  margin-bottom: 16px;
+  clear: both;
+}
+
+.schedule-panel * { box-sizing: border-box; }
 
 .schedule-toggle {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 7px 14px; border-radius: 8px; border: none;
-  font-size: 13px; font-weight: 700; cursor: pointer;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
   transition: all 0.15s;
 }
 .schedule-toggle.off { background: #f1f5f9; color: #64748b; }
@@ -13299,46 +13312,84 @@ body:has(.admin-settings-page) { overflow: hidden; }
 .schedule-toggle svg { font-size: 18px; }
 
 .schedule-info-bar {
-  display: flex; align-items: center; gap: 8px;
-  background: #fefce8; border: 1px solid #fde68a;
-  border-radius: 8px; padding: 10px 14px;
-  font-size: 13px; color: #92400e; margin: 14px 0;
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+  background: #fefce8;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #92400e;
+  margin: 14px 0;
+  width: 100%;
 }
 
 .schedule-form {
-  display: grid; grid-template-columns: 1fr 1fr 1fr;
-  gap: 14px; margin-bottom: 16px;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 16px;
+  width: 100%;
 }
 
-.schedule-field { display: flex; flex-direction: column; gap: 6px; }
-.schedule-field label { font-size: 12px; font-weight: 700; color: #374151; }
-.schedule-field input, .schedule-field select {
-  height: 38px; border: 1.5px solid #e2e8f0; border-radius: 8px;
-  padding: 0 12px; font-size: 13px; color: #0f172a; background: #fff;
+.schedule-field {
+  display: flex !important;
+  flex-direction: column;
+  gap: 6px;
+}
+.schedule-field label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  display: block;
+}
+.schedule-field input,
+.schedule-field select {
+  display: block !important;
+  width: 100%;
+  height: 38px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0 12px;
+  font-size: 13px;
+  color: #0f172a;
+  background: #fff;
   transition: border-color 0.15s;
 }
 .schedule-field input:focus, .schedule-field select:focus {
   outline: none; border-color: var(--site-primary);
 }
 .schedule-field input:disabled, .schedule-field select:disabled {
-  background: #f8fafc; color: #94a3b8;
+  background: #f8fafc; color: #94a3b8; cursor: not-allowed;
 }
 
 .schedule-preview {
-  background: #f0fdf4; border: 1px solid #bbf7d0;
-  border-radius: 8px; padding: 12px 14px; margin-bottom: 16px;
+  display: block;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  width: 100%;
 }
 .schedule-preview p { font-size: 13px; color: #166534; margin: 0 0 4px; }
 .schedule-preview p:last-child { margin: 0; }
 
-.schedule-actions { display: flex; gap: 10px; }
+.schedule-actions {
+  display: flex !important;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 
 .admin-success-msg {
+  display: block;
   background: #f0fdf4; border: 1px solid #bbf7d0;
   border-radius: 8px; padding: 10px 14px;
   font-size: 13px; color: #166534; margin-bottom: 12px;
 }
 .admin-error-msg {
+  display: block;
   background: #fef2f2; border: 1px solid #fecaca;
   border-radius: 8px; padding: 10px 14px;
   font-size: 13px; color: #dc2626; margin-bottom: 12px;
@@ -17063,5 +17114,181 @@ body {
     min-height: 42px;
     margin-bottom: 12px;
     padding-bottom: 9px;
+  }
+}
+
+/* Chapter management: stable five-row workspace and compact scheduling panel. */
+@media (min-width: 901px) {
+  .admin-content:has(.admin-chapters-page) {
+    height: calc(100vh - 62px);
+    min-height: 0;
+    overflow: hidden;
+    padding: 14px 22px 16px;
+  }
+
+  .admin-content:has(.admin-chapters-page) .admin-chapters-page {
+    height: 100%;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto auto minmax(210px, 250px) auto minmax(280px, 1fr);
+    gap: 12px;
+    overflow: hidden;
+  }
+
+  .admin-content:has(.admin-chapters-page) .admin-chapter-list-panel {
+    min-height: 0;
+    max-height: none;
+    padding: 13px 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .admin-content:has(.admin-chapters-page) .admin-chapter-list-panel .admin-panel-head {
+    flex: 0 0 auto;
+    margin-bottom: 8px;
+  }
+
+  .admin-content:has(.admin-chapters-page) .admin-chapter-list-panel .admin-table-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+  }
+
+  .admin-content:has(.admin-chapters-page) .admin-chapter-form-panel {
+    min-height: 0;
+    padding: 13px 16px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .admin-content:has(.admin-chapters-page) .admin-chapter-form-panel .admin-panel-head {
+    flex: 0 0 auto;
+    margin-bottom: 8px;
+  }
+
+  .admin-content:has(.admin-chapters-page) .admin-chapter-create {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    padding-right: 0;
+  }
+
+  .admin-content:has(.admin-chapters-page) .admin-chapter-editor {
+    min-height: 100px;
+  }
+
+  .admin-content:has(.admin-chapters-page) .schedule-panel.is-disabled {
+    min-height: 58px;
+    margin: 0;
+    padding: 10px 14px;
+    display: grid !important;
+    grid-template-columns: minmax(270px, auto) minmax(240px, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .admin-content:has(.admin-chapters-page) .schedule-panel.is-disabled .admin-panel-head {
+    min-width: 0;
+    margin: 0;
+    gap: 12px;
+    grid-column: 1;
+  }
+
+  .admin-content:has(.admin-chapters-page) .schedule-panel.is-disabled .admin-panel-head h2 {
+    font-size: 14px;
+    margin-top: 1px;
+  }
+
+  .admin-content:has(.admin-chapters-page) .schedule-panel.is-disabled .schedule-toggle {
+    flex: 0 0 auto;
+    min-height: 34px;
+    padding: 0 11px;
+  }
+
+  .admin-content:has(.admin-chapters-page) .schedule-panel.is-disabled .schedule-info-bar {
+    min-width: 0;
+    min-height: 36px;
+    margin: 0;
+    padding: 7px 11px;
+    overflow: hidden;
+    grid-column: 2;
+  }
+
+  .admin-content:has(.admin-chapters-page) .schedule-panel.is-disabled .schedule-info-bar span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .admin-content:has(.admin-chapters-page) .schedule-panel.is-disabled .schedule-actions {
+    flex-wrap: nowrap;
+    grid-column: 3;
+  }
+
+  .admin-content:has(.admin-chapters-page) .schedule-panel.is-disabled .schedule-actions button {
+    min-height: 34px;
+    white-space: nowrap;
+  }
+
+  .admin-content:has(.admin-chapters-page) .schedule-panel.is-disabled .admin-success-msg,
+  .admin-content:has(.admin-chapters-page) .schedule-panel.is-disabled .admin-error-msg {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+
+  .admin-content:has(.schedule-panel.is-enabled) {
+    overflow-y: auto;
+  }
+
+  .admin-content:has(.schedule-panel.is-enabled) .admin-chapters-page {
+    height: auto;
+    min-height: 100%;
+    grid-template-rows: auto auto minmax(210px, 250px) auto minmax(360px, 1fr);
+    overflow: visible;
+  }
+
+  .admin-content:has(.schedule-panel.is-enabled) .schedule-panel {
+    margin: 0;
+  }
+}
+
+@media (max-width: 1100px) and (min-width: 901px) {
+  .admin-content:has(.admin-chapters-page) .schedule-panel.is-disabled {
+    grid-template-columns: minmax(230px, auto) minmax(0, 1fr) auto;
+  }
+
+  .admin-content:has(.admin-chapters-page) .schedule-panel.is-disabled .schedule-info-bar {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-chapters-page {
+    gap: 14px;
+  }
+
+  .admin-chapters-page .schedule-panel {
+    margin: 0;
+    padding: 14px;
+  }
+
+  .admin-chapters-page .schedule-panel .admin-panel-head {
+    align-items: center;
+    gap: 10px;
+  }
+
+  .admin-chapters-page .schedule-info-bar {
+    margin: 10px 0;
+  }
+
+  .admin-chapters-page .schedule-form {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-chapters-page .admin-chapter-list-panel,
+  .admin-chapters-page .admin-chapter-form-panel {
+    padding: 14px;
   }
 }

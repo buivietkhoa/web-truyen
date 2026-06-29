@@ -71,12 +71,26 @@ export async function POST(request: Request, { params }: Params) {
     });
   });
 
-  await db.$transaction(updates);
+  // Đặt lịch + đảm bảo story đang "Đang ra"
+  await db.$transaction([
+    ...updates,
+    db.story.update({
+      where: { id: storyId },
+      data: { status: "Đang ra" },
+    }),
+  ]);
+
+  const firstRelease = new Date(startDate);
+  firstRelease.setUTCHours(hourUTC, 0, 0, 0);
+  const lastRelease = new Date(startDate);
+  lastRelease.setDate(lastRelease.getDate() + (unpublishedChapters.length - 1) * intervalDays);
+  lastRelease.setUTCHours(hourUTC, 0, 0, 0);
 
   return NextResponse.json({
-    message: `Đã đặt lịch cho ${unpublishedChapters.length} chương.`,
+    message: `✅ Đã đặt lịch cho ${unpublishedChapters.length} chương. Chương đầu ra lúc ${hourVN}:00 ngày ${new Date(startDate).toLocaleDateString("vi-VN")}.`,
     scheduled: unpublishedChapters.length,
-    firstRelease: new Date(startDate),
+    firstRelease,
+    lastRelease,
     hourVN,
     intervalDays,
   });

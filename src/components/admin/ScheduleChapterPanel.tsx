@@ -62,7 +62,7 @@ export default function ScheduleChapterPanel({ storyId, unpublishedCount }: Prop
   };
 
   return (
-    <section className="admin-panel schedule-panel">
+    <section className={`admin-panel schedule-panel ${enabled ? "is-enabled" : "is-disabled"}`}>
       <div className="admin-panel-head">
         <div>
           <p>Tự động</p>
@@ -84,53 +84,51 @@ export default function ScheduleChapterPanel({ storyId, unpublishedCount }: Prop
       <div className="schedule-info-bar">
         <FaClock />
         <span>
-          {unpublishedCount > 0
-            ? `${unpublishedCount} chương đang ở bản nháp sẽ được đăng theo lịch.`
-            : "Tất cả chương đã được công khai."}
+          {unpublishedCount > 0 ? (
+            <>
+              <strong>{unpublishedCount} chương bản nháp</strong> chờ đăng.
+              Khi ra hết, truyện sẽ tự động chuyển sang <strong>Hoàn thành</strong>.
+            </>
+          ) : (
+            "✅ Tất cả chương đã được công khai."
+          )}
         </span>
       </div>
 
-      <div className="schedule-form">
-        <div className="schedule-field">
-          <label>Ngày bắt đầu đăng chương 1</label>
-          <input
-            type="date"
-            value={startDate}
-            min={new Date().toISOString().split("T")[0]}
-            onChange={(e) => setStartDate(e.target.value)}
-            disabled={!enabled || loading}
-          />
-        </div>
+      {/* Chỉ hiện form khi đang bật */}
+      {enabled && (
+        <div className="schedule-form">
+          <div className="schedule-field">
+            <label>Ngày bắt đầu</label>
+            <input
+              type="date"
+              value={startDate}
+              min={new Date().toISOString().split("T")[0]}
+              onChange={(e) => setStartDate(e.target.value)}
+              disabled={loading}
+            />
+          </div>
 
-        <div className="schedule-field">
-          <label>Giờ đăng (giờ VN)</label>
-          <select
-            value={hourVN}
-            onChange={(e) => setHourVN(Number(e.target.value))}
-            disabled={!enabled || loading}
-          >
-            {Array.from({ length: 24 }, (_, i) => (
-              <option key={i} value={i}>
-                {String(i).padStart(2, "0")}:00
-              </option>
-            ))}
-          </select>
-        </div>
+          <div className="schedule-field">
+            <label>Giờ đăng (giờ VN)</label>
+            <select value={hourVN} onChange={(e) => setHourVN(Number(e.target.value))} disabled={loading}>
+              {Array.from({ length: 24 }, (_, i) => (
+                <option key={i} value={i}>{String(i).padStart(2, "0")}:00</option>
+              ))}
+            </select>
+          </div>
 
-        <div className="schedule-field">
-          <label>Mỗi bao nhiêu ngày</label>
-          <select
-            value={intervalDays}
-            onChange={(e) => setIntervalDays(Number(e.target.value))}
-            disabled={!enabled || loading}
-          >
-            <option value={1}>Mỗi 1 ngày</option>
-            <option value={2}>Mỗi 2 ngày</option>
-            <option value={3}>Mỗi 3 ngày</option>
-            <option value={7}>Mỗi 1 tuần</option>
-          </select>
+          <div className="schedule-field">
+            <label>Tần suất</label>
+            <select value={intervalDays} onChange={(e) => setIntervalDays(Number(e.target.value))} disabled={loading}>
+              <option value={1}>Mỗi 1 ngày</option>
+              <option value={2}>Mỗi 2 ngày</option>
+              <option value={3}>Mỗi 3 ngày</option>
+              <option value={7}>Mỗi 1 tuần</option>
+            </select>
+          </div>
         </div>
-      </div>
+      )}
 
       {enabled && unpublishedCount > 0 && (
         <div className="schedule-preview">
@@ -146,24 +144,20 @@ export default function ScheduleChapterPanel({ storyId, unpublishedCount }: Prop
       )}
 
       <div className="schedule-actions">
-        <button
-          type="button"
-          className="admin-btn-primary"
-          onClick={handleSave}
-          disabled={loading}
-        >
-          {loading ? "Đang lưu..." : enabled ? "Lưu lịch đăng" : "Tắt lịch đăng"}
-        </button>
-
-        <button
-          type="button"
-          className="admin-btn-secondary"
-          onClick={handleRunNow}
-          disabled={loading}
-          title="Kiểm tra và publish các chương đã đến giờ ngay bây giờ"
-        >
-          Chạy ngay
-        </button>
+        {enabled ? (
+          <>
+            <button type="button" className="admin-btn-primary" onClick={handleSave} disabled={loading}>
+              {loading ? "Đang lưu..." : "💾 Lưu lịch đăng"}
+            </button>
+            <button type="button" className="admin-btn-secondary" onClick={handleRunNow} disabled={loading} title="Publish ngay các chương đã đến giờ">
+              ▶ Chạy ngay
+            </button>
+          </>
+        ) : (
+          <button type="button" className="admin-btn-secondary" onClick={handleSave} disabled={loading}>
+            {loading ? "Đang lưu..." : "Tắt & xoá lịch"}
+          </button>
+        )}
       </div>
     </section>
   );
