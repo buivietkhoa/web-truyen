@@ -169,7 +169,7 @@ export default async function DocTruyenPage({ params }: Props) {
               )}
             </div>
 
-            <ChapterContent chapterId={chapter.id} />
+            <ChapterContent chapterId={chapter.id} storyId={story.id} />
 
             <div className="reader-nav reader-nav-bottom">
               {prevChapter ? (

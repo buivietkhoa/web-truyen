@@ -13206,6 +13206,23 @@ body:has(.admin-settings-page) { overflow: hidden; }
   color: #fde68a;
 }
 
+/* Chapter locked inline message */
+.chapter-locked-inline {
+  padding: 40px 20px;
+  text-align: center;
+}
+.chapter-locked-inline p {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.7;
+  max-width: 600px;
+  margin: 0 auto;
+}
+[data-theme="dark"] .chapter-locked-inline p {
+  color: #e2e8f0;
+}
+
 /* Chapter content loading skeleton */
 .chapter-loading-skeleton {
   height: 18px;
