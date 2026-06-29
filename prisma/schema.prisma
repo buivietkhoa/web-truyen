@@ -91,20 +91,22 @@ model Story {
 }
 
 model Chapter {
-  id        String   @id @default(cuid())
-  storyId   String
-  title     String
-  number    Int
-  content   String
-  published Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String    @id @default(cuid())
+  storyId     String
+  title       String
+  number      Int
+  content     String
+  published   Boolean   @default(true)
+  scheduledAt DateTime? // null = không lên lịch, có giá trị = sẽ tự publish lúc đó
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   story            Story            @relation(fields: [storyId], references: [id], onDelete: Cascade)
   readingHistories ReadingHistory[]
   notifications    Notification[]
 
   @@unique([storyId, number])
+  @@index([scheduledAt, published])
 }
 
 model ReadingHistory {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   FaCloudUploadAlt,
@@ -115,6 +115,28 @@ export default function AdminAffiliateForm({ initialSetting, initialProducts }: 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [loadingKey, setLoadingKey] = useState<PlatformKey | null>(null);
+
+  // Stats
+  const [stats, setStats] = useState<{
+    totalClicks: number;
+    todayClicks: number;
+    weekClicks: number;
+    monthClicks: number;
+    clicksByProduct: Record<string, number>;
+  } | null>(null);
+
+  const fetchStats = () => {
+    fetch("/api/admin/affiliate/stats")
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => data && setStats(data))
+      .catch(() => {});
+  };
+
+  useEffect(() => {
+    fetchStats();
+    const interval = setInterval(fetchStats, 30_000); // auto-refresh 30 giây
+    return () => clearInterval(interval);
+  }, []);
 
   // Draft riêng cho mỗi sàn
   const [links, setLinks] = useState<Record<PlatformKey, string>>({ shopee: "", tiktok: "", lazada: "" });
@@ -261,6 +283,34 @@ export default function AdminAffiliateForm({ initialSetting, initialProducts }: 
           />
         </section>
 
+        {/* Thống kê clicks */}
+        <div className="aff-stats-bar">
+          <div className="aff-stats-items">
+            <div className="aff-stat-item">
+              <span>Hôm nay</span>
+              <strong>{stats?.todayClicks ?? "—"}</strong>
+            </div>
+            <div className="aff-stat-divider" />
+            <div className="aff-stat-item">
+              <span>7 ngày</span>
+              <strong>{stats?.weekClicks ?? "—"}</strong>
+            </div>
+            <div className="aff-stat-divider" />
+            <div className="aff-stat-item">
+              <span>Tháng này</span>
+              <strong>{stats?.monthClicks ?? "—"}</strong>
+            </div>
+            <div className="aff-stat-divider" />
+            <div className="aff-stat-item highlight">
+              <span>Tổng cộng</span>
+              <strong>{stats?.totalClicks ?? "—"}</strong>
+            </div>
+          </div>
+          <button type="button" className="aff-refresh-btn" onClick={fetchStats} title="Làm mới">
+            ↻
+          </button>
+        </div>
+
         {/* Thêm sản phẩm theo từng sàn */}
         <section className="admin-create-card">
           <div className="aff-config-header">
@@ -355,6 +405,11 @@ export default function AdminAffiliateForm({ initialSetting, initialProducts }: 
                         <span className={`aff-status-chip ${product.enabled ? "on" : "off"}`}>
                           {product.enabled ? "Đang bật" : "Đã tắt"}
                         </span>
+                        {stats && (
+                          <span className="aff-click-count">
+                            🖱️ {stats.clicksByProduct[product.id] ?? 0} click
+                          </span>
+                        )}
                       </div>
                       <a
                         href={product.affiliateUrl}

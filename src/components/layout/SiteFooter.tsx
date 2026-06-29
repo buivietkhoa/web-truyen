@@ -15,9 +15,9 @@ export default async function SiteFooter() {
             </Link>
             <p>{setting.siteDesc}</p>
             <div className="footer-socials">
-              <Link href="/" aria-label="Facebook">
+              <a href="https://www.facebook.com/profile.php?id=61591646273203" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
                 <FaFacebookF />
-              </Link>
+              </a>
               <Link href="/" aria-label="TikTok">
                 <FaTiktok />
               </Link>

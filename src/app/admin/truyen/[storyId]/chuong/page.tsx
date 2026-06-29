@@ -13,6 +13,7 @@ import {
 import AdminChapterForm from "@/components/admin/AdminChapterForm";
 import AdminDeleteChapterButton from "@/components/admin/AdminDeleteChapterButton";
 import AdminEditChapterModal from "@/components/admin/AdminEditChapterModal";
+import ScheduleChapterPanel from "@/components/admin/ScheduleChapterPanel";
 import { db } from "@/lib/db";
 
 interface Props {
@@ -59,6 +60,7 @@ export default async function AdminStoryChaptersPage({ params }: Props) {
   const latestChapter = story.chapters.at(-1);
   const nextChapterNumber = (latestChapter?.number || 0) + 1;
   const publicChapters = story.chapters.filter((chapter) => chapter.published).length;
+  const draftChapters = story.chapters.filter((chapter) => !chapter.published).length;
 
   return (
     <div className="admin-page admin-chapters-page">
@@ -174,6 +176,8 @@ export default async function AdminStoryChaptersPage({ params }: Props) {
           </div>
         )}
       </section>
+
+      <ScheduleChapterPanel storyId={story.id} unpublishedCount={draftChapters} />
 
       <section id="them-chuong" className="admin-panel admin-chapter-form-panel">
         <div className="admin-panel-head">
