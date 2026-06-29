@@ -13206,6 +13206,21 @@ body:has(.admin-settings-page) { overflow: hidden; }
   color: #fde68a;
 }
 
+/* Chapter content loading skeleton */
+.chapter-loading-skeleton {
+  height: 18px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+  margin-bottom: 14px;
+}
+.chapter-loading-skeleton.short { width: 60%; }
+[data-theme="dark"] .chapter-loading-skeleton {
+  background: linear-gradient(90deg, #1e2235 25%, #252a3d 50%, #1e2235 75%);
+  background-size: 200% 100%;
+}
+
 /* ============================================================
    RESPONSIVE — TABLET (≤991px) & MOBILE (≤575px)
    ============================================================ */

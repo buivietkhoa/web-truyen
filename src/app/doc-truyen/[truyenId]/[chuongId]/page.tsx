@@ -5,13 +5,13 @@ import { FaArrowLeft, FaArrowRight, FaBookOpen } from "react-icons/fa";
 import AffiliateTimedPopup from "@/components/affiliate/AffiliateTimedPopup";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
+import ChapterContent from "@/components/reader/ChapterContent";
 import ChapterSelect from "@/components/reader/ChapterSelect";
 import ReadingHistoryTracker from "@/components/reader/ReadingHistoryTracker";
 import ReaderToolbar from "@/components/reader/ReaderToolbar";
 import ViewTracker from "@/components/reader/ViewTracker";
 import { getTimedAffiliatePopupData } from "@/lib/affiliate";
 import { db } from "@/lib/db";
-import { sanitizeRichContent } from "@/lib/sanitize-content";
 import { absoluteUrl, truncateMeta } from "@/lib/seo";
 import { getSiteSetting } from "@/lib/site-settings";
 
@@ -115,7 +115,6 @@ export default async function DocTruyenPage({ params }: Props) {
 
   const { story, chapter, prevChapter, nextChapter } = data;
   const affiliatePopupData = await getTimedAffiliatePopupData(story.id);
-  const visibleContent = sanitizeRichContent(chapter.content);
 
   return (
     <>
@@ -170,10 +169,7 @@ export default async function DocTruyenPage({ params }: Props) {
               )}
             </div>
 
-            <section
-              className="reader-content"
-              dangerouslySetInnerHTML={{ __html: visibleContent }}
-            />
+            <ChapterContent chapterId={chapter.id} />
 
             <div className="reader-nav reader-nav-bottom">
               {prevChapter ? (
