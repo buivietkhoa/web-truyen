@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FaClock, FaToggleOff, FaToggleOn } from "react-icons/fa";
+import { FaClock, FaPlay, FaSave, FaToggleOff, FaToggleOn } from "react-icons/fa";
 
 interface Props {
   storyId: string;
@@ -147,14 +147,17 @@ export default function ScheduleChapterPanel({ storyId, unpublishedCount }: Prop
         {enabled ? (
           <>
             <button type="button" className="admin-btn-primary" onClick={handleSave} disabled={loading}>
-              {loading ? "Đang lưu..." : "💾 Lưu lịch đăng"}
+              <FaSave />
+              {loading ? "Đang lưu..." : "Lưu lịch đăng"}
             </button>
             <button type="button" className="admin-btn-secondary" onClick={handleRunNow} disabled={loading} title="Publish ngay các chương đã đến giờ">
-              ▶ Chạy ngay
+              <FaPlay />
+              Chạy ngay
             </button>
           </>
         ) : (
           <button type="button" className="admin-btn-secondary" onClick={handleSave} disabled={loading}>
+            <FaToggleOff />
             {loading ? "Đang lưu..." : "Tắt & xoá lịch"}
           </button>
         )}

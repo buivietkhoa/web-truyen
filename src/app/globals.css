@@ -17292,3 +17292,176 @@ body {
     padding: 14px;
   }
 }
+
+/* Refined chapter scheduler and chapter workspace controls. */
+.admin-chapters-page .schedule-panel {
+  border-color: #dbe5f1;
+  border-radius: 10px;
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.04);
+}
+
+.admin-chapters-page .schedule-panel.is-enabled {
+  margin: 0;
+  padding: 14px 16px;
+}
+
+.admin-chapters-page .schedule-panel.is-enabled .admin-panel-head {
+  margin-bottom: 10px;
+}
+
+.admin-chapters-page .schedule-panel .admin-panel-head p {
+  margin-bottom: 2px;
+}
+
+.admin-chapters-page .schedule-panel .admin-panel-head h2 {
+  font-size: 16px;
+}
+
+.admin-chapters-page .schedule-toggle {
+  min-height: 36px;
+  padding: 0 13px;
+  border: 1px solid #dbeafe;
+  border-radius: 8px;
+  background: #f8fbff;
+  color: #2563eb;
+  box-shadow: 0 2px 7px rgba(37, 99, 235, 0.07);
+}
+
+.admin-chapters-page .schedule-toggle:hover {
+  border-color: #93c5fd;
+  background: #eff6ff;
+  transform: translateY(-1px);
+}
+
+.admin-chapters-page .schedule-toggle.on {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.admin-chapters-page .schedule-info-bar {
+  min-height: 42px;
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border-color: #fde68a;
+  background: #fffbeb;
+  font-size: 12px;
+}
+
+.admin-chapters-page .schedule-info-bar > svg {
+  flex: 0 0 auto;
+  color: #d97706;
+}
+
+.admin-chapters-page .schedule-form {
+  gap: 12px;
+  margin: 0;
+}
+
+.admin-chapters-page .schedule-field {
+  gap: 5px;
+}
+
+.admin-chapters-page .schedule-field label {
+  color: #475569;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.admin-chapters-page .schedule-field input,
+.admin-chapters-page .schedule-field select {
+  height: 38px;
+  border: 1px solid #dbe5f1;
+  background: #f8fafc;
+}
+
+.admin-chapters-page .schedule-field input:hover,
+.admin-chapters-page .schedule-field select:hover {
+  border-color: #bfdbfe;
+  background: #fff;
+}
+
+.admin-chapters-page .schedule-actions {
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.admin-chapters-page .schedule-actions .admin-btn-primary,
+.admin-chapters-page .schedule-actions .admin-btn-secondary {
+  min-width: 124px;
+  min-height: 38px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 14px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: none;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.admin-chapters-page .schedule-actions .admin-btn-primary {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.18);
+}
+
+.admin-chapters-page .schedule-actions .admin-btn-primary:hover {
+  border-color: #1d4ed8;
+  background: #1d4ed8;
+  box-shadow: 0 9px 20px rgba(37, 99, 235, 0.25);
+  transform: translateY(-2px);
+}
+
+.admin-chapters-page .schedule-actions .admin-btn-secondary {
+  border-color: #cbd5e1;
+  background: #fff;
+  color: #334155;
+}
+
+.admin-chapters-page .schedule-actions .admin-btn-secondary:hover {
+  border-color: #93c5fd;
+  background: #eff6ff;
+  color: #1d4ed8;
+  transform: translateY(-2px);
+}
+
+.admin-chapters-page .schedule-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.admin-chapters-page .admin-chapter-list-panel,
+.admin-chapters-page .admin-chapter-form-panel {
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.035);
+}
+
+.admin-chapters-page .admin-chapter-list-panel .admin-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+@media (max-width: 900px) {
+  .admin-chapters-page .schedule-panel.is-enabled {
+    padding: 14px;
+  }
+
+  .admin-chapters-page .schedule-actions {
+    justify-content: stretch;
+  }
+
+  .admin-chapters-page .schedule-actions .admin-btn-primary,
+  .admin-chapters-page .schedule-actions .admin-btn-secondary {
+    flex: 1 1 140px;
+  }
+}
