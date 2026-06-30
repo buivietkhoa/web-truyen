@@ -36,6 +36,19 @@ export async function POST(request: Request, { params }: Params) {
     enabled: boolean;
   };
 
+  // Validate inputs
+  if (enabled) {
+    if (!Number.isInteger(hourVN) || hourVN < 0 || hourVN > 23) {
+      return NextResponse.json({ error: "Giờ đăng không hợp lệ (0–23)." }, { status: 400 });
+    }
+    if (!Number.isInteger(intervalDays) || intervalDays < 1 || intervalDays > 30) {
+      return NextResponse.json({ error: "Tần suất không hợp lệ (1–30 ngày)." }, { status: 400 });
+    }
+    if (typeof startDate !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(startDate) || isNaN(Date.parse(startDate))) {
+      return NextResponse.json({ error: "Ngày bắt đầu không hợp lệ." }, { status: 400 });
+    }
+  }
+
   // Lấy tất cả chương chưa publish của truyện, sắp xếp theo số chương
   const unpublishedChapters = await db.chapter.findMany({
     where: { storyId, published: false },

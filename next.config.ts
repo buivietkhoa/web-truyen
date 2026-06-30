@@ -12,7 +12,9 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
   "img-src 'self' data: blob: https:",
-  "connect-src 'self' https: ws:",
+  process.env.NODE_ENV === "development"
+    ? "connect-src 'self' https: ws: wss:"
+    : "connect-src 'self'",
   ...(process.env.NODE_ENV === "production" ? ["upgrade-insecure-requests"] : []),
 ].join("; ");
 

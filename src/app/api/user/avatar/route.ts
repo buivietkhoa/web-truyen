@@ -79,7 +79,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("AVATAR_UPLOAD_ERROR", error);
     return NextResponse.json(
-      { message: error instanceof Error ? error.message : "Lỗi server." },
+      { message: "Lỗi server khi cập nhật ảnh đại diện." },
       { status: 500 }
     );
   }

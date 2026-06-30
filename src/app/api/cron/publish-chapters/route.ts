@@ -7,7 +7,7 @@ export async function GET(request: Request) {
   const isVercelCron = request.headers.get("authorization") === `Bearer ${envSecret}`;
   const isManual = envSecret && secret === envSecret;
 
-  if (!isVercelCron && !isManual && process.env.NODE_ENV === "production") {
+  if (!isVercelCron && !isManual) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

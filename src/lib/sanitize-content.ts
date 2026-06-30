@@ -17,7 +17,6 @@ const allowedTags = [
   "ol",
   "li",
   "a",
-  "img",
 ];
 
 export function sanitizeRichContent(value: string) {
@@ -25,16 +24,13 @@ export function sanitizeRichContent(value: string) {
     allowedTags,
     allowedAttributes: {
       a: ["href", "title", "target", "rel"],
-      img: ["src", "alt", "title"],
     },
     allowedSchemes: ["http", "https", "mailto"],
-    allowedSchemesByTag: {
-      img: ["https"],
-    },
     allowProtocolRelative: false,
     transformTags: {
       a: sanitizeHtml.simpleTransform("a", {
         rel: "noopener noreferrer",
+        target: "_blank",
       }),
     },
   }).trim();

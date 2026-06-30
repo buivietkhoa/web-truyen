@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 const allowedEvents = new Set(["VIEW", "NEXT_CHAPTER", "DURATION"]);
 
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const rl = await checkRateLimit({ key: `reading_event:${ip}`, limit: 120, windowMs: 60 * 1000 });
+  if (!rl.allowed) {
+    return NextResponse.json({ message: "Quá nhiều yêu cầu." }, { status: 429 });
+  }
+
   const body = await request.json().catch(() => null);
   const storyId = typeof body?.storyId === "string" ? body.storyId : "";
   const chapterId = typeof body?.chapterId === "string" ? body.chapterId : "";

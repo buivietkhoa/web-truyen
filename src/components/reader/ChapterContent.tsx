@@ -1,5 +1,6 @@
 "use client";
 
+import DOMPurify from "dompurify";
 import { useEffect, useState } from "react";
 import { getAffState } from "@/components/affiliate/AffiliateTimedPopup";
 
@@ -35,7 +36,7 @@ export default function ChapterContent({ chapterId, storyId }: Props) {
 
     fetch(`/api/chapter/${chapterId}/content`)
       .then((res) => res.ok ? res.json() : Promise.reject())
-      .then((data) => setHtml(data.content ?? ""))
+      .then((data) => setHtml(DOMPurify.sanitize(data.content ?? "")))
       .catch(() => setHtml("<p>Không thể tải nội dung chương này.</p>"))
       .finally(() => setLoading(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps

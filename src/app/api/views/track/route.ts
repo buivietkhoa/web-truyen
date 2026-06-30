@@ -6,7 +6,7 @@ export async function POST(request: NextRequest) {
   try {
     const { storyId } = await request.json();
 
-    if (!storyId || typeof storyId !== "string") {
+    if (!storyId || typeof storyId !== "string" || !/^[a-z0-9_-]{1,64}$/i.test(storyId)) {
       return NextResponse.json({ error: "Missing storyId" }, { status: 400 });
     }
 

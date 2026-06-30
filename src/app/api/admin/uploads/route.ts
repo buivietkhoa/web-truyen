@@ -210,7 +210,7 @@ export async function POST(request: Request) {
     console.error("ADMIN_UPLOAD_ERROR", error);
 
     return NextResponse.json(
-      { message: error instanceof Error ? error.message : "Lỗi server khi upload ảnh bìa." },
+      { message: "Lỗi server khi upload ảnh bìa." },
       { status: 500 }
     );
   }

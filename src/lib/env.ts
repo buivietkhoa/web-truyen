@@ -2,6 +2,7 @@ const REQUIRED_ENV_VARS = [
   "DATABASE_URL",
   "JWT_SECRET",
   "NEXT_PUBLIC_APP_URL",
+  "CRON_SECRET",
 ] as const;
 
 function validateEnv() {
@@ -17,6 +18,14 @@ function validateEnv() {
   if (jwtSecret.length < 32) {
     throw new Error(
       `[env] JWT_SECRET quá ngắn (${jwtSecret.length} ký tự). Cần ít nhất 32 ký tự.\n` +
+      `Tạo bằng: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
+    );
+  }
+
+  const cronSecret = process.env.CRON_SECRET!;
+  if (cronSecret.length < 16) {
+    throw new Error(
+      `[env] CRON_SECRET quá ngắn (${cronSecret.length} ký tự). Cần ít nhất 16 ký tự.\n` +
       `Tạo bằng: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
     );
   }
