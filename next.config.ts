@@ -14,7 +14,7 @@ const contentSecurityPolicy = [
   "img-src 'self' data: blob: https:",
   process.env.NODE_ENV === "development"
     ? "connect-src 'self' https: ws: wss:"
-    : "connect-src 'self'",
+    : "connect-src 'self' https://api.cloudinary.com",
   ...(process.env.NODE_ENV === "production" ? ["upgrade-insecure-requests"] : []),
 ].join("; ");
 
