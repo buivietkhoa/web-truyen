@@ -31,21 +31,17 @@ function getMarketplace(affiliateUrl: string): "shopee" | "tiktok" | "lazada" | 
   return null;
 }
 
-/** Hash đơn giản để chọn sản phẩm cố định theo storyId */
-function storyHash(storyId: string, salt: string): number {
-  const str = storyId + salt;
-  let h = 0;
-  for (let i = 0; i < str.length; i++) {
-    h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
-  }
-  return Math.abs(h);
+function pickRandom<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
 }
 
 /**
- * Trả về đúng 3 sản phẩm cho story này: 1 Shopee + 1 TikTok + 1 Lazada
- * Mỗi story luôn nhận cùng 3 sản phẩm (deterministic theo storyId)
+ * Trả về đúng 3 sản phẩm để hiện ở chương 2, 4, 6.
+ * Ưu tiên lấy 1 sản phẩm từ mỗi sàn (Shopee, TikTok, Lazada).
+ * Nếu thiếu sàn, lấy thêm ngẫu nhiên từ các sản phẩm còn lại.
+ * Nếu tổng số sản phẩm < 3, cho phép lặp lại sản phẩm.
  */
-export async function getTimedAffiliatePopupData(storyId: string) {
+export async function getTimedAffiliatePopupData() {
   const setting = await getAffiliateSetting();
   if (!setting?.enabled) return null;
 
@@ -57,7 +53,6 @@ export async function getTimedAffiliatePopupData(storyId: string) {
 
   if (products.length === 0) return null;
 
-  // Nhóm theo sàn
   const groups: Record<"shopee" | "tiktok" | "lazada", typeof products> = {
     shopee: [], tiktok: [], lazada: [],
   };
@@ -66,20 +61,38 @@ export async function getTimedAffiliatePopupData(storyId: string) {
     if (mp) groups[mp].push(p);
   }
 
-  // Chọn 1 sản phẩm mỗi sàn theo hash của storyId
-  const selected = (["shopee", "tiktok", "lazada"] as const)
-    .map((mp) => {
-      const list = groups[mp];
-      if (list.length === 0) return null;
-      return list[storyHash(storyId, mp) % list.length];
-    })
-    .filter(Boolean) as typeof products;
+  const selected: typeof products = [];
+  const usedIds = new Set<string>();
 
-  if (selected.length === 0) return null;
+  // Bước 1: lấy 1 ngẫu nhiên từ mỗi sàn có sản phẩm
+  for (const mp of ["shopee", "tiktok", "lazada"] as const) {
+    if (selected.length >= 3) break;
+    if (groups[mp].length === 0) continue;
+    const pick = pickRandom(groups[mp]);
+    selected.push(pick);
+    usedIds.add(pick.id);
+  }
+
+  // Bước 2: nếu chưa đủ 3, lấy thêm từ sản phẩm chưa dùng
+  if (selected.length < 3) {
+    const remaining = products.filter(p => !usedIds.has(p.id));
+    for (let i = remaining.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [remaining[i], remaining[j]] = [remaining[j], remaining[i]];
+    }
+    for (const p of remaining) {
+      if (selected.length >= 3) break;
+      selected.push(p);
+    }
+  }
+
+  // Bước 3: nếu vẫn chưa đủ 3 (ít sản phẩm), cho phép lặp lại
+  while (selected.length < 3) {
+    selected.push(pickRandom(products));
+  }
 
   return {
     effect: setting.effect,
-    waitSeconds: setting.waitSeconds,
     products: selected.map((p) => ({
       productId: p.id,
       affiliateUrl: p.affiliateUrl,
@@ -90,33 +103,3 @@ export async function getTimedAffiliatePopupData(storyId: string) {
   };
 }
 
-export async function getRandomAffiliateGateSetting() {
-  const setting = await getAffiliateSetting();
-
-  if (!setting?.enabled) return null;
-
-  const products = await db.affiliateProduct.findMany({
-    where: { enabled: true },
-    select: {
-      id: true,
-      affiliateUrl: true,
-      title: true,
-      description: true,
-      imageUrl: true,
-    },
-  });
-
-  if (products.length === 0) return null;
-
-  const product = products[Math.floor(Math.random() * products.length)];
-
-  return {
-    productId: product.id,
-    affiliateUrl: product.affiliateUrl,
-    title: product.title,
-    description: product.description,
-    bannerImage: product.imageUrl,
-    waitSeconds: setting.waitSeconds,
-    effect: setting.effect,
-  };
-}

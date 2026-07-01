@@ -114,7 +114,7 @@ export default async function DocTruyenPage({ params }: Props) {
   }
 
   const { story, chapter, prevChapter, nextChapter } = data;
-  const affiliatePopupData = await getTimedAffiliatePopupData(story.id);
+  const affiliatePopupData = await getTimedAffiliatePopupData();
 
   return (
     <>
@@ -201,7 +201,6 @@ export default async function DocTruyenPage({ params }: Props) {
           storyId={story.id}
           chapterId={chapter.id}
           chapterNumber={chapter.number}
-          waitSeconds={affiliatePopupData.waitSeconds}
           effect={affiliatePopupData.effect}
         />
       )}

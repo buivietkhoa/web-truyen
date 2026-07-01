@@ -2962,6 +2962,14 @@ body {
   padding-left: 18px;
 }
 
+.updates-count {
+  font-size: 14px;
+  color: #6b7280;
+  margin-top: 8px;
+  display: block;
+  padding-left: 22px;
+}
+
 .updates-grid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -3052,6 +3060,7 @@ body {
 }
 
 .updates-pagination button,
+.updates-pagination a,
 .updates-pagination span {
   width: 46px;
   height: 42px;
@@ -3063,21 +3072,40 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 16px;
+  text-decoration: none;
 }
 
-.updates-pagination button:first-child {
+.updates-pagination a {
+  cursor: pointer;
+}
+
+.updates-pagination span {
+  cursor: default;
+  color: #9ca3af;
+  background: #f9fafb;
+}
+
+.updates-pagination > :first-child {
   border-radius: 6px 0 0 6px;
 }
 
-.updates-pagination button:last-child {
+.updates-pagination > :last-child {
   border-right: 1px solid #cbd5e1;
   border-radius: 0 6px 6px 0;
 }
 
-.updates-pagination button.active {
+.updates-pagination button.active,
+.updates-pagination a.active {
   background: #3a67e8;
   border-color: #3a67e8;
   color: #fff;
+}
+
+.updates-pagination .pagination-ellipsis {
+  border: none;
+  background: transparent;
+  width: 32px;
+  color: #6b7280;
 }
 
 @media (max-width: 1199.98px) {

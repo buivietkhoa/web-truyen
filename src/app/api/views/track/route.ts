@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getBangkokDateKey } from "@/lib/date";
 import { db } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
@@ -23,19 +22,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Story not found" }, { status: 404 });
     }
 
-    const today = getBangkokDateKey();
-
-    await db.$transaction([
-      db.story.update({
-        where: { id: storyId },
-        data: { views: { increment: 1 } },
-      }),
-      db.dailyView.upsert({
-        where: { date: today },
-        update: { count: { increment: 1 } },
-        create: { date: today, count: 1 },
-      }),
-    ]);
+    await db.story.update({
+      where: { id: storyId },
+      data: { views: { increment: 1 } },
+    });
 
     const response = NextResponse.json({ ok: true, counted: true });
     response.cookies.set(viewCookieName, "1", {

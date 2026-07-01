@@ -1,65 +1,10 @@
 import { NextResponse } from "next/server";
 import { getAdminUser } from "@/lib/admin";
 import { defaultAffiliateSetting } from "@/lib/affiliate";
+import { normalizeExternalUrl, normalizeImageUrl } from "@/lib/affiliate-normalize";
 import { db } from "@/lib/db";
 
 const allowedEffects = new Set(["fade", "slide", "zoom"]);
-
-function normalizeExternalUrl(value: unknown) {
-  const rawUrl = typeof value === "string" ? value : "";
-  const cleanedUrl = rawUrl
-    .trim()
-    .replace(/[\u200B-\u200D\uFEFF]/g, "")
-    .replace(/\s+/g, "");
-
-  if (!cleanedUrl) {
-    return "";
-  }
-
-  const url =
-    cleanedUrl.startsWith("//")
-      ? `https:${cleanedUrl}`
-      : /^[a-z][a-z\d+\-.]*:\/\//i.test(cleanedUrl)
-        ? cleanedUrl
-        : `https://${cleanedUrl}`;
-
-  try {
-    const parsed = new URL(url);
-    return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.toString() : "";
-  } catch {
-    return "";
-  }
-}
-
-function normalizeImageUrl(value: unknown) {
-  const rawUrl = typeof value === "string" ? value : "";
-  const cleanedUrl = rawUrl
-    .trim()
-    .replace(/[\u200B-\u200D\uFEFF]/g, "")
-    .replace(/\s+/g, "");
-
-  if (!cleanedUrl) {
-    return "";
-  }
-
-  if (cleanedUrl.startsWith("/uploads/")) {
-    return cleanedUrl;
-  }
-
-  try {
-    const parsed = new URL(cleanedUrl);
-
-    if (parsed.hostname === "uploads") {
-      return parsed.pathname.startsWith("/uploads/")
-        ? parsed.pathname
-        : `/uploads${parsed.pathname}`;
-    }
-
-    return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.toString() : "";
-  } catch {
-    return "";
-  }
-}
 
 export async function PATCH(request: Request) {
   const admin = await getAdminUser();

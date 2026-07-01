@@ -36,9 +36,12 @@ export async function GET() {
     where: { createdAt: { gte: weekStart } },
   });
 
-  // Tháng này
-  const monthStart = new Date(vnMidnight);
-  monthStart.setUTCDate(1);
+  // Tháng này: tính đúng ngày 1 theo giờ VN (vnMidnight + 7h = 00:00 VN)
+  const vnOffset = 7 * 60 * 60 * 1000;
+  const vnToday = new Date(vnMidnight.getTime() + vnOffset);
+  const monthStart = new Date(
+    Date.UTC(vnToday.getUTCFullYear(), vnToday.getUTCMonth(), 1) - vnOffset
+  );
 
   const monthClicks = await db.affiliateClick.count({
     where: { createdAt: { gte: monthStart } },

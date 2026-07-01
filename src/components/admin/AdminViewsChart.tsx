@@ -106,7 +106,7 @@ export default function AdminViewsChart({ data, fixedRange = false, fixedTitle }
   );
   const hoveredPoint = hoveredIndex === null ? null : visibleData[hoveredIndex];
   const hoveredPrevious = hoveredIndex === null ? null : comparisonData[hoveredIndex];
-  const title = fixedTitle || (range === "custom" ? "Lượt xem theo khoảng tùy chọn" : `Lượt xem ${range} ngày qua`);
+  const title = fixedTitle || (range === "custom" ? "Lượt truy cập theo khoảng tùy chọn" : `Lượt truy cập ${range} ngày qua`);
 
   return (
     <section className="admin-panel admin-report-chart-panel">
@@ -117,7 +117,7 @@ export default function AdminViewsChart({ data, fixedRange = false, fixedTitle }
             <span className="admin-chart-live" title={lastUpdated ? `Cập nhật lúc ${lastUpdated}` : "Đang kết nối dữ liệu"}><i /> Trực tiếp{lastUpdated && <small>{lastUpdated}</small>}</span>
             <span><i className="current" /> Hiện tại</span>
             {showComparison && <span><i className="previous" /> Kỳ trước</span>}
-            <strong><FaChartLine /> {total.toLocaleString("vi-VN")} lượt xem</strong>
+            <strong><FaChartLine /> {total.toLocaleString("vi-VN")} lượt truy cập</strong>
           </div>
           {!fixedRange && <div className="admin-report-range" aria-label="Chọn khoảng thời gian">
             {[7, 30, 90].map((days) => (

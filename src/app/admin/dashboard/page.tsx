@@ -129,12 +129,12 @@ export default async function AdminDashboardPage({ searchParams }: Props) {
       <section className="admin-stat-grid admin-stat-grid-four admin-dashboard-stats">
         <Link href="/admin/truyen" className="admin-stat-card"><div className="admin-stat-icon blue"><FaBookOpen /></div><span>Tổng truyện</span><strong>{storyCount}</strong><small>+{newStories} trong kỳ</small><DashboardTrend value={trend(newStories, previousStories)} /></Link>
         <Link href="/admin/truyen" className="admin-stat-card"><div className="admin-stat-icon violet"><FaLayerGroup /></div><span>Tổng chương</span><strong>{chapterCount}</strong><small>+{newChapters} trong kỳ</small><DashboardTrend value={trend(newChapters, previousChapters)} /></Link>
-        <Link href="/admin/reports" className="admin-stat-card active"><div className="admin-stat-icon gray"><FaEye /></div><span>Lượt xem trong kỳ</span><strong>{currentViews}</strong><small>So với kỳ trước</small><DashboardTrend value={trend(currentViews, previousViews)} /></Link>
+        <Link href="/admin/reports" className="admin-stat-card active"><div className="admin-stat-icon gray"><FaEye /></div><span>Lượt truy cập trong kỳ</span><strong>{currentViews}</strong><small>So với kỳ trước</small><DashboardTrend value={trend(currentViews, previousViews)} /></Link>
         <Link href="/admin/users" className="admin-stat-card"><div className="admin-stat-icon green"><FaUsers /></div><span>Người dùng</span><strong>{userCount}</strong><small>+{newUsers} trong kỳ</small><DashboardTrend value={trend(newUsers, previousUsers)} /></Link>
       </section>
 
       <section className="admin-dashboard-grid">
-        <AdminViewsChart data={chartData} fixedRange fixedTitle={`Lượt xem trong ${periodLabel}`} />
+        <AdminViewsChart data={chartData} fixedRange fixedTitle={`Lượt truy cập trong ${periodLabel}`} />
         <AdminRecentActivityPanel activities={activities} />
       </section>
 

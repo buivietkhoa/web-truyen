@@ -14,19 +14,12 @@ export default function ChapterContent({ chapterId, storyId }: Props) {
   const [loading, setLoading] = useState(true);
   const [locked, setLocked]   = useState(false);
 
-  function isLocked() {
-    const state = getAffState(storyId);
-    if (!state) return false;
-    // Không khoá nếu đã click link rồi
-    if (state.doneChapterIds.includes(chapterId)) return false;
-    return state.lockedChapterIds.includes(chapterId);
-  }
-
   useEffect(() => {
-    const currentlyLocked = isLocked();
-    setLocked(currentlyLocked);
+    const state = getAffState(storyId);
+    const isLocked = state?.lockedChapterIds.includes(chapterId) ?? false;
+    setLocked(isLocked);
 
-    if (currentlyLocked) {
+    if (isLocked) {
       setLoading(false);
       return;
     }
@@ -42,23 +35,20 @@ export default function ChapterContent({ chapterId, storyId }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chapterId]);
 
-  // Lắng nghe event khoá/mở khoá từ popup
+  // Lắng nghe events từ popup
   useEffect(() => {
     const onLocked = (e: Event) => {
       if ((e as CustomEvent<{ chapterId: string }>).detail.chapterId === chapterId) {
         setLocked(true);
       }
     };
-    const onDone = (e: Event) => {
-      if ((e as CustomEvent<{ chapterId: string }>).detail.chapterId === chapterId) {
-        setLocked(false);
-      }
-    };
+    const onUnlocked = () => setLocked(false);
+
     window.addEventListener("aff-chapter-locked", onLocked);
-    window.addEventListener("aff-chapter-done", onDone);
+    window.addEventListener("aff-chapter-unlocked", onUnlocked);
     return () => {
       window.removeEventListener("aff-chapter-locked", onLocked);
-      window.removeEventListener("aff-chapter-done", onDone);
+      window.removeEventListener("aff-chapter-unlocked", onUnlocked);
     };
   }, [chapterId]);
 

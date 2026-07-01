@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 import { FaTimes } from "react-icons/fa";
 
-const SS_KEY = "aff_v6";
+const SS_KEY = "aff_v8";
+const TRIGGER_CHAPTERS = [2, 4, 6];
 
 interface AffState {
-  order: number[];
-  phase: number;               // số lần click link thành công
-  pendingShow: boolean;        // user ấn X → popup hiện ở chương tiếp (>= 2)
-  lockedChapterIds: string[];  // chapterId bị ẩn nội dung (ấn X)
-  doneChapterIds: string[];    // chapterId đã click link thành công
+  phase: number;             // 0-2: đang ở sản phẩm nào
+  pendingShow: boolean;      // X đã ấn → popup theo sang chapter tiếp
+  lockedChapterIds: string[];
+  doneKeys: string[];        // `${chapterId}:${phase}` đã click link
 }
 
 export function getAffState(storyId: string): AffState | null {
@@ -18,13 +18,12 @@ export function getAffState(storyId: string): AffState | null {
     const raw = sessionStorage.getItem(`${SS_KEY}_${storyId}`);
     if (!raw) return null;
     const p = JSON.parse(raw) as Partial<AffState>;
-    if (Array.isArray(p.order) && typeof p.phase === "number") {
+    if (typeof p.phase === "number") {
       return {
-        order: p.order,
         phase: p.phase,
         pendingShow: Boolean(p.pendingShow),
         lockedChapterIds: Array.isArray(p.lockedChapterIds) ? p.lockedChapterIds : [],
-        doneChapterIds: Array.isArray(p.doneChapterIds) ? p.doneChapterIds : [],
+        doneKeys: Array.isArray(p.doneKeys) ? p.doneKeys : [],
       };
     }
     return null;
@@ -36,20 +35,8 @@ function saveState(storyId: string, state: AffState) {
   catch { /* ok */ }
 }
 
-function createState(storyId: string, length: number): AffState {
-  const order = Array.from({ length }, (_, i) => i);
-  for (let i = order.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [order[i], order[j]] = [order[j], order[i]];
-  }
-  const state: AffState = {
-    order, phase: 0,
-    pendingShow: false,
-    lockedChapterIds: [],
-    doneChapterIds: [],
-  };
-  saveState(storyId, state);
-  return state;
+function emptyState(): AffState {
+  return { phase: 0, pendingShow: false, lockedChapterIds: [], doneKeys: [] };
 }
 
 function createDisplayUrl(value: string) {
@@ -76,7 +63,6 @@ interface Props {
   storyId: string;
   chapterId: string;
   chapterNumber: number;
-  waitSeconds: number;
   effect: string;
 }
 
@@ -93,37 +79,19 @@ export default function AffiliateTimedPopup({
   useEffect(() => {
     if (products.length === 0) return;
 
-    // Chương 1 hoặc chapter < 2: không bao giờ hiện popup
-    if (chapterNumber < 2) return;
+    const state = getAffState(storyId) ?? emptyState();
 
-    let state = getAffState(storyId);
-    if (!state || state.order.length !== products.length) {
-      state = createState(storyId, products.length);
-    }
-
-    // Đã click đủ 3 link → dừng hoàn toàn
+    // Đã xong hết 3 sản phẩm
     if (state.phase >= products.length) return;
 
-    // Chương này đã click link rồi → không cần popup nữa
-    if (state.doneChapterIds.includes(chapterId)) return;
+    // Chapter này đã click link ở phase này rồi
+    if (state.doneKeys.includes(`${chapterId}:${state.phase}`)) return;
 
-    // Chương này đang bị khoá (ấn X) → khi vào lại, xoá khỏi lockedChapterIds
-    // để popup có thể hiện lại (khi refresh)
-    if (state.lockedChapterIds.includes(chapterId)) {
-      const updated: AffState = {
-        ...state,
-        lockedChapterIds: state.lockedChapterIds.filter(id => id !== chapterId),
-      };
-      saveState(storyId, updated);
-      state = updated;
-      // Tiếp tục để hiện popup
-    }
+    // Hiện popup nếu: đang pending (X đã ấn trước đó) HOẶC đây là trigger chapter của phase hiện tại
+    const isTrigger = chapterNumber === TRIGGER_CHAPTERS[state.phase];
+    if (!state.pendingShow && !isTrigger) return;
 
-    // Hiện popup nếu: pendingShow=true (chương trước ấn X) hoặc chương chẵn
-    const shouldShow = state.pendingShow || chapterNumber % 2 === 0;
-    if (!shouldShow) return;
-
-    const product = products[state.order[state.phase]];
+    const product = products[state.phase];
     if (!product) return;
 
     setActiveProduct(product);
@@ -131,7 +99,6 @@ export default function AffiliateTimedPopup({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chapterId]);
 
-  // Blur khi popup mở
   useEffect(() => {
     const container = document.querySelector<HTMLElement>(".reader-container");
     if (modalOpen) {
@@ -151,9 +118,9 @@ export default function AffiliateTimedPopup({
     ? `/api/affiliate/click?productId=${encodeURIComponent(activeProduct.productId)}&storyId=${encodeURIComponent(storyId)}&chapterId=${encodeURIComponent(chapterId)}`
     : "";
 
-  // Ấn X → khoá chương này + pendingShow=true
+  // Ấn X → khóa chapter này + popup theo sang chapter tiếp
   const handleClose = () => {
-    const state = getAffState(storyId) ?? createState(storyId, products.length);
+    const state = getAffState(storyId) ?? emptyState();
     saveState(storyId, {
       ...state,
       pendingShow: true,
@@ -165,19 +132,20 @@ export default function AffiliateTimedPopup({
     window.dispatchEvent(new CustomEvent("aff-chapter-locked", { detail: { chapterId } }));
   };
 
-  // Ấn link → phase++, pendingShow=false, đánh dấu done
+  // Click link → phase++, mở khóa tất cả chapter, pendingShow=false
   const handleAffiliateClick = () => {
-    const state = getAffState(storyId) ?? createState(storyId, products.length);
+    const state = getAffState(storyId) ?? emptyState();
+    const doneKey = `${chapterId}:${state.phase}`;
     saveState(storyId, {
-      ...state,
       phase: state.phase + 1,
       pendingShow: false,
-      doneChapterIds: state.doneChapterIds.includes(chapterId)
-        ? state.doneChapterIds
-        : [...state.doneChapterIds, chapterId],
+      lockedChapterIds: [],
+      doneKeys: state.doneKeys.includes(doneKey)
+        ? state.doneKeys
+        : [...state.doneKeys, doneKey],
     });
     setModalOpen(false);
-    window.dispatchEvent(new CustomEvent("aff-chapter-done", { detail: { chapterId } }));
+    window.dispatchEvent(new CustomEvent("aff-chapter-unlocked"));
   };
 
   if (!modalOpen || !activeProduct) return null;
@@ -191,8 +159,10 @@ export default function AffiliateTimedPopup({
         <div className="aff-card-body">
           <p className="aff-card-instruction">
             Mời Quý độc giả{" "}
-            <strong>CLICK vào LINK LIÊN KẾT HOẶC ẢNH</strong> bên dưới
-            để ủng hộ tác giả!
+            <strong>
+              CLICK vào LINK LIÊN KẾT{activeProduct.bannerImage ? " HOẶC ẢNH" : ""}
+            </strong>{" "}
+            bên dưới để ủng hộ tác giả!
           </p>
           <a
             href={trackedUrl}

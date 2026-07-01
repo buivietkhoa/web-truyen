@@ -5,6 +5,7 @@ import Script from "next/script";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./globals.css";
 import NavigationProgress from "@/components/layout/NavigationProgress";
+import PageVisitTracker from "@/components/layout/PageVisitTracker";
 import { absoluteUrl, defaultSiteDescription, defaultSiteName, getSiteUrl } from "@/lib/seo";
 import { getSiteSetting } from "@/lib/site-settings";
 
@@ -70,6 +71,7 @@ export default async function RootLayout({
           }}
         />
         <NavigationProgress />
+        <PageVisitTracker />
         {children}
       </body>
     </html>
