@@ -58,7 +58,7 @@ export async function POST(request: Request, { params }: Props) {
     }
 
     const number = (story.chapters[0]?.number || 0) + 1;
-    const title = requestedTitle || `Chương ${number}`;
+    const title = requestedTitle;
 
     const chapter = await db.chapter.create({
       data: {
