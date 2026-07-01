@@ -8772,14 +8772,21 @@ body:has(.admin-stories-page) { overflow: hidden; }
 /* Compact cover dropzone */
 .admin-stories-form-col .admin-cover-dropzone {
   min-height: 92px;
+  max-height: 260px;
   padding: 12px;
   border-radius: 8px;
   gap: 6px;
+  overflow: hidden;
 }
 .admin-stories-form-col .admin-cover-dropzone svg { font-size: 20px; }
 .admin-stories-form-col .admin-cover-dropzone strong { font-size: 11px; }
 .admin-stories-form-col .admin-cover-dropzone small { display: none; }
-.admin-stories-form-col .admin-cover-dropzone img { min-height: 92px; }
+.admin-stories-form-col .admin-cover-dropzone img {
+  min-height: 92px;
+  max-height: 260px;
+  object-fit: cover;
+  object-position: top center;
+}
 
 /* Compact settings */
 .admin-stories-form-col .admin-setting-group { gap: 5px; margin-bottom: 8px; }
