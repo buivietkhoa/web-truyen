@@ -160,8 +160,8 @@ export default function AdminStoryForm() {
         </div>
       </div>
 
-      {message && <div className="alert alert-success">{message}</div>}
-      {error && <div className="alert alert-danger">{error}</div>}
+      {message && <div className="alert alert-success admin-story-feedback" role="status">{message}</div>}
+      {error && <div className="alert alert-danger admin-story-feedback" role="alert">{error}</div>}
 
       <form id="admin-create-story-form" className="admin-create-grid" onSubmit={handleSubmit}>
         <div className="admin-create-card admin-create-main">
