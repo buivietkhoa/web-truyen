@@ -4344,6 +4344,9 @@ body {
 
 .reader-content p {
   margin-bottom: 22px;
+  text-indent: 2em;
+  text-align: justify;
+  text-justify: inter-word;
 }
 
 .reader-floating-tools {
@@ -13813,7 +13816,9 @@ body:has(.admin-settings-page) { overflow: hidden; }
 
 .reader-content p {
   margin-bottom: 18px;
-  text-indent: 1.5em;
+  text-indent: 2em;
+  text-align: justify;
+  text-justify: inter-word;
 }
 
 /* Floating toolbar - cải thiện */
