@@ -204,7 +204,7 @@ export default async function ChiTietTruyenPage({ params }: Props) {
                             {chapter.number}
                           </span>
                           <span className="chapter-title">
-                            <span className="chapter-label">Chương {chapter.number}: </span>
+                            <span className="chapter-label">Chương {chapter.number}{chapter.title ? ": " : ""}</span>
                             <strong>{chapter.title}</strong>
                           </span>
                           <small className="chapter-date">
@@ -231,7 +231,7 @@ export default async function ChiTietTruyenPage({ params }: Props) {
                             {chapter.number}
                           </span>
                           <span className="chapter-title">
-                            <span className="chapter-label">Chương {chapter.number}: </span>
+                            <span className="chapter-label">Chương {chapter.number}{chapter.title ? ": " : ""}</span>
                             <strong>{chapter.title}</strong>
                           </span>
                           <small className="chapter-date">
