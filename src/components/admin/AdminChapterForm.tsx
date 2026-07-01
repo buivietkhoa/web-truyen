@@ -26,7 +26,7 @@ function getPlainTextFromHtml(html: string) {
 export default function AdminChapterForm({ storyId, nextChapterNumber, storyPublished }: AdminChapterFormProps) {
   const router = useRouter();
   const editorRef = useRef<HTMLDivElement>(null);
-  const [title, setTitle] = useState(`Chương ${nextChapterNumber}`);
+  const [title, setTitle] = useState("");
   const [published, setPublished] = useState(storyPublished);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -89,7 +89,7 @@ export default function AdminChapterForm({ storyId, nextChapterNumber, storyPubl
       }
 
       form.reset();
-      setTitle(`Chương ${nextChapterNumber + 1}`);
+      setTitle("");
       setPublished(storyPublished);
       if (editorRef.current) {
         editorRef.current.innerHTML = "";
