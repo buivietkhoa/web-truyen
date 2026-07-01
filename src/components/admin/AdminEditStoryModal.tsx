@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { FaEdit, FaGlobeAsia, FaSave, FaTimes, FaUpload } from "react-icons/fa";
 import { categories } from "@/data/categories";
+import { uploadImageDirect } from "@/lib/upload-direct";
 
 interface Story {
   id: string;
@@ -78,15 +79,8 @@ export default function AdminEditStoryModal({ story }: AdminEditStoryModalProps)
     if (!file) return;
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const response = await fetch("/api/admin/uploads", { method: "POST", body: formData });
-      if (!response.ok) {
-        setError(await readErrorMessage(response, "Upload ảnh thất bại."));
-        return;
-      }
-      const data = await response.json();
-      setCoverImage(data.url);
+      const url = await uploadImageDirect(file);
+      setCoverImage(url);
     } catch {
       setError("Không thể kết nối server khi upload.");
     } finally {

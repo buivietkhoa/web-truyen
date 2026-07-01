@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { FaSave, FaUpload } from "react-icons/fa";
+import { uploadImageDirect } from "@/lib/upload-direct";
 
 interface SiteSetting {
   siteName: string;
@@ -28,12 +29,8 @@ export default function AdminSettingsForm({ initialSetting }: AdminSettingsFormP
     if (!file) return;
     setUploading(true);
     try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("/api/admin/uploads", { method: "POST", body: fd });
-      if (!res.ok) { setError("Upload logo thất bại."); return; }
-      const data = await res.json();
-      setLogoUrl(data.url);
+      const url = await uploadImageDirect(file);
+      setLogoUrl(url);
     } catch {
       setError("Không thể kết nối server.");
     } finally {

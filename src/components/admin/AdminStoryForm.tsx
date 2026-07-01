@@ -14,6 +14,7 @@ import {
   FaSave,
 } from "react-icons/fa";
 import { categories } from "@/data/categories";
+import { uploadImageDirect } from "@/lib/upload-direct";
 
 interface CreateStoryResponse {
   story?: { id?: string };
@@ -46,24 +47,7 @@ function getPlainTextFromHtml(html: string) {
 }
 
 async function uploadCoverImage(file: File) {
-  const uploadForm = new FormData();
-  uploadForm.append("file", file);
-
-  const response = await fetch("/api/admin/uploads", {
-    method: "POST",
-    body: uploadForm,
-  });
-
-  if (!response.ok) {
-    throw new Error(await readErrorMessage(response, "Không thể upload ảnh bìa."));
-  }
-
-  const data = await response.json();
-  if (typeof data.url !== "string") {
-    throw new Error("Server không trả về đường dẫn ảnh bìa.");
-  }
-
-  return data.url;
+  return uploadImageDirect(file);
 }
 
 export default function AdminStoryForm() {

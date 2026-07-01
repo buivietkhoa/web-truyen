@@ -10,6 +10,7 @@ import {
   FaTimes,
   FaTrash,
 } from "react-icons/fa";
+import { uploadImageDirect } from "@/lib/upload-direct";
 
 interface AffiliateProduct {
   id: string;
@@ -50,25 +51,7 @@ async function readErrorMessage(response: Response, fallback: string) {
 }
 
 async function uploadBanner(file: File) {
-  const formData = new FormData();
-  formData.append("file", file);
-
-  const response = await fetch("/api/admin/uploads", {
-    method: "POST",
-    body: formData,
-  });
-
-  if (!response.ok) {
-    throw new Error(await readErrorMessage(response, "Không thể upload ảnh."));
-  }
-
-  const data = await response.json();
-
-  if (typeof data.url !== "string") {
-    throw new Error("Server không trả về URL ảnh.");
-  }
-
-  return data.url;
+  return uploadImageDirect(file);
 }
 
 function cleanExternalUrl(value: string) {
