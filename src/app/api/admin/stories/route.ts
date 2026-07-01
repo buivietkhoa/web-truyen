@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     const published = typeof body.published === "boolean" ? body.published : true;
     const slug = createSlug(customSlug || title);
 
-    if (!title || !category || !coverImage || !description) {
+    if (!title || !category || !coverImage) {
       return NextResponse.json(
         { message: "Vui lòng nhập đầy đủ thông tin truyện." },
         { status: 400 },
