@@ -100,10 +100,6 @@ export default function AdminStoryForm() {
     setError("");
 
     const currentHtml = editorRef.current?.innerHTML || editorHtml;
-    if (!getPlainTextFromHtml(currentHtml)) {
-      setError("Vui lòng nhập nội dung giới thiệu truyện.");
-      return;
-    }
     if (!coverFile) {
       setError("Vui lòng chọn file ảnh bìa.");
       return;
