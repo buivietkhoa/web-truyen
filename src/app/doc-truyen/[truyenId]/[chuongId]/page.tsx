@@ -76,7 +76,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const { story, chapter } = data;
-  const title = `${chapter.title || `Chương ${chapter.number}`} - ${story.title}`;
+  const title = `${chapter.title ? `Chương ${chapter.number}: ${chapter.title}` : `Chương ${chapter.number}`} - ${story.title}`;
   const description =
     truncateMeta(chapter.content) ||
     `Đọc chương ${chapter.number} của truyện ${story.title} trên ${siteSetting.siteName}.`;
@@ -136,7 +136,7 @@ export default async function DocTruyenPage({ params }: Props) {
             <header className="reader-head">
               <p>{story.category}</p>
               <h1>
-                {chapter.title || `Chương ${chapter.number}`}
+                {chapter.title ? `Chương ${chapter.number}: ${chapter.title}` : `Chương ${chapter.number}`}
               </h1>
               <span>{story.title}</span>
             </header>
