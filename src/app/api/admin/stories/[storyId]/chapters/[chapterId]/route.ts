@@ -28,9 +28,7 @@ export async function PATCH(request: Request, { params }: Props) {
     const number = typeof body.number === "number" ? body.number : undefined;
     const published = typeof body.published === "boolean" ? body.published : undefined;
 
-    if (title !== undefined && !title) {
-      return NextResponse.json({ message: "Tiêu đề chương không được để trống." }, { status: 400 });
-    }
+
     if (content !== undefined && !content) {
       return NextResponse.json({ message: "Nội dung chương không được để trống." }, { status: 400 });
     }

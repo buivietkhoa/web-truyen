@@ -114,7 +114,7 @@ export default function AdminEditChapterModal({ chapter }: AdminEditChapterModal
                 </label>
                 <label>
                   <span>Tiêu đề</span>
-                  <input name="title" defaultValue={chapter.title} required disabled={loading} />
+                  <input name="title" defaultValue={chapter.title} disabled={loading} />
                 </label>
               </div>
 
