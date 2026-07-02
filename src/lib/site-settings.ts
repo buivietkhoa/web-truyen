@@ -1,4 +1,4 @@
-import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { db } from "@/lib/db";
 
 export const defaultSiteSetting = {
@@ -10,26 +10,15 @@ export const defaultSiteSetting = {
   footerText: "",
 };
 
-export const getSiteSetting = cache(async () => {
-  try {
-    const setting = await db.siteSetting.findFirst();
-    return setting ?? defaultSiteSetting;
-  } catch (firstError) {
-    // Neon can close an idle pooled connection; retry once with a fresh checkout.
-    await new Promise((resolve) => setTimeout(resolve, 150));
-
+export const getSiteSetting = unstable_cache(
+  async () => {
     try {
       const setting = await db.siteSetting.findFirst();
       return setting ?? defaultSiteSetting;
-    } catch (retryError) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error("Unable to load site settings after retry", {
-          firstError,
-          retryError,
-        });
-      }
-
+    } catch {
       return defaultSiteSetting;
     }
-  }
-});
+  },
+  ["site-setting"],
+  { revalidate: 3600, tags: ["site-setting"] }
+);

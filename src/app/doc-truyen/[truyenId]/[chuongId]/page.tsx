@@ -15,7 +15,7 @@ import { db } from "@/lib/db";
 import { absoluteUrl, truncateMeta } from "@/lib/seo";
 import { getSiteSetting } from "@/lib/site-settings";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 interface Props {
   params: Promise<{

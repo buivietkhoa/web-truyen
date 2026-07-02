@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { getAdminUser } from "@/lib/admin";
 import { db } from "@/lib/db";
@@ -38,6 +39,7 @@ export async function PATCH(request: Request) {
       ? await db.siteSetting.update({ where: { id: existing.id }, data })
       : await db.siteSetting.create({ data });
 
+    revalidatePath("/", "layout");
     return NextResponse.json({ message: "Đã lưu cài đặt.", setting });
   } catch (error) {
     console.error("ADMIN_SETTINGS_ERROR", error);
