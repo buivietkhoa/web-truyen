@@ -8,6 +8,7 @@ export const categories = [
   { name: "Kỳ Huyễn", slug: "ky-huyen" },
   { name: "Dị Giới", slug: "di-gioi" },
   { name: "Cổ Đại", slug: "co-dai" },
+  { name: "Trinh Thám", slug: "trinh-tham" },
 ];
 
 export function getCategoryBySlug(slug: string) {
