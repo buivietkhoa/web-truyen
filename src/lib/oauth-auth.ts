@@ -74,7 +74,7 @@ export function createOAuthLoginResponse(user: { id: string; email: string; role
     httpOnly: true,
     path: "/",
     maxAge: 60 * 60 * 24 * 7,
-    sameSite: "strict",
+    sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
   });
 
