@@ -15206,6 +15206,29 @@ body:has(.admin-settings-page) { overflow: hidden; }
   background: #fb923c;
 }
 
+/* Status badge — Đang ra / Hoàn thành / Tạm ngưng */
+.story-status-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin: 0 12px 12px;
+  line-height: 1.6;
+}
+.story-status-badge.ongoing  { background: #dcfce7; color: #15803d; }
+.story-status-badge.done     { background: #dbeafe; color: #1d4ed8; }
+.story-status-badge.paused   { background: #fef3c7; color: #b45309; }
+
+[data-theme="dark"] .story-status-badge.ongoing  { background: #14532d; color: #86efac; }
+[data-theme="dark"] .story-status-badge.done     { background: #1e3a8a; color: #93c5fd; }
+[data-theme="dark"] .story-status-badge.paused   { background: #451a03; color: #fcd34d; }
+
+/* update-card badge */
+.update-info .story-status-badge {
+  margin: 4px 0 0;
+}
+
 /* Section heading */
 .section-heading h2 {
   font-size: 24px;

@@ -151,6 +151,9 @@ export default async function HomePage() {
                       <strong>
                         {story.chapters[0] ? `Chương ${story.chapters[0].number}` : "Chưa có chương"}
                       </strong>
+                      <span className={`story-status-badge ${story.status === "Hoàn thành" ? "done" : story.status === "Tạm ngưng" ? "paused" : "ongoing"}`}>
+                        {story.status}
+                      </span>
                     </Link>
                   </div>
                 ))}

@@ -102,6 +102,9 @@ export default async function DanhSachTruyenPage({ searchParams }: Props) {
                         <p>{story.chapters[0] ? `Chương ${story.chapters[0].number}` : "Chưa có chương"}</p>
                         <small>{story.updatedAt.toLocaleDateString("vi-VN")}</small>
                       </div>
+                      <span className={`story-status-badge ${story.status === "Hoàn thành" ? "done" : story.status === "Tạm ngưng" ? "paused" : "ongoing"}`}>
+                        {story.status}
+                      </span>
                     </div>
                   </Link>
                 ))}
