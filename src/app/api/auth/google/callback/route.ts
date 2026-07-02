@@ -24,6 +24,7 @@ export async function GET(request: Request) {
     const savedState = cookieStore.get(stateCookieName)?.value;
 
     if (!code || !state || !savedState || state !== savedState) {
+      console.error("GOOGLE_OAUTH_STATE_MISMATCH", { hasCode: !!code, hasState: !!state, hasSavedState: !!savedState, match: state === savedState });
       return NextResponse.redirect(new URL("/dang-nhap?error=google_state", getAppOrigin()));
     }
 
@@ -40,6 +41,8 @@ export async function GET(request: Request) {
     });
 
     if (!tokenResponse.ok) {
+      const tokenError = await tokenResponse.text();
+      console.error("GOOGLE_OAUTH_TOKEN_ERROR", { status: tokenResponse.status, body: tokenError, redirectUri: `${getAppOrigin()}/api/auth/google/callback` });
       return NextResponse.redirect(new URL("/dang-nhap?error=google_token", getAppOrigin()));
     }
 
