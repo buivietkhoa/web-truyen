@@ -2,7 +2,6 @@ import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import { Open_Sans } from "next/font/google";
 import Script from "next/script";
-import "bootstrap/dist/css/bootstrap.min.css";
 import "./globals.css";
 import NavigationProgress from "@/components/layout/NavigationProgress";
 import PageVisitTracker from "@/components/layout/PageVisitTracker";

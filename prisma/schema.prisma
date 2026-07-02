@@ -88,6 +88,9 @@ model Story {
   readingHistories ReadingHistory[]
   favorites        Favorite[]
   notifications    Notification[]
+
+  @@index([published, updatedAt(sort: Desc)])
+  @@index([published, category])
 }
 
 model Chapter {
@@ -106,6 +109,7 @@ model Chapter {
   notifications    Notification[]
 
   @@unique([storyId, number])
+  @@index([storyId, published, number])
   @@index([scheduledAt, published])
 }
 
