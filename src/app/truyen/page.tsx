@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import SiteFooter from "@/components/layout/SiteFooter";
+
+export const revalidate = 60;
 import SiteHeader from "@/components/layout/SiteHeader";
 import { db } from "@/lib/db";
 import { absoluteUrl } from "@/lib/seo";
@@ -89,7 +92,7 @@ export default async function DanhSachTruyenPage({ searchParams }: Props) {
                 {stories.map((story) => (
                   <Link href={`/truyen/${story.slug}`} className="update-card" key={story.id}>
                     <div className="update-cover image-skeleton">
-                      <img src={story.coverImage} alt={story.title} loading="lazy" />
+                      <Image fill src={story.coverImage} alt={story.title} sizes="(max-width: 576px) 50vw, 160px" style={{ objectFit: "cover" }} />
                       <span>{story.category.toUpperCase()}</span>
                     </div>
 

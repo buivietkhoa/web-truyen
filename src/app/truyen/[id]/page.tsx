@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+
+export const revalidate = 120;
 import { FaBookOpen, FaChevronDown, FaEye, FaStar } from "react-icons/fa";
 import SiteFooter from "@/components/layout/SiteFooter";
 import SiteHeader from "@/components/layout/SiteHeader";
@@ -120,8 +123,8 @@ export default async function ChiTietTruyenPage({ params }: Props) {
       <main className="story-detail-page">
         <div className="container detail-container">
           <section className="story-hero">
-            <div className="story-cover image-skeleton">
-              <img src={story.coverImage} alt={story.title} loading="lazy" />
+            <div className="story-cover image-skeleton" style={{ position: "relative" }}>
+              <Image src={story.coverImage} alt={story.title} fill priority sizes="(max-width: 992px) 100vw, 230px" style={{ objectFit: "cover", borderRadius: "10px" }} />
             </div>
 
             <div className="story-main-info">

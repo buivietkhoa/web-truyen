@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { FaArrowRight, FaStar } from "react-icons/fa";
+
+export const revalidate = 60;
 import CompletedStoriesCarousel from "@/components/home/CompletedStoriesCarousel";
 import HeroSlider from "@/components/home/HeroSlider";
 import SiteFooter from "@/components/layout/SiteFooter";
@@ -110,7 +113,7 @@ export default async function HomePage() {
 
                   {recommended.map((item) => (
                     <Link href={`/truyen/${item.slug}`} className="recommend-card" key={item.id}>
-                      <img src={item.coverImage} alt={item.title} />
+                      <Image src={item.coverImage} alt={item.title} width={70} height={90} />
                       <div>
                         <h4>{item.title}</h4>
                         <p>{item.category} - {item.status}</p>
@@ -140,7 +143,7 @@ export default async function HomePage() {
                   <div className="col-lg-3 col-sm-6 mb-4" key={story.id}>
                     <Link href={`/truyen/${story.slug}`} className="story-card">
                       <div className="story-cover-wrap image-skeleton">
-                        <img src={story.coverImage} alt={story.title} loading="lazy" />
+                        <Image fill src={story.coverImage} alt={story.title} sizes="(max-width: 576px) 50vw, (max-width: 992px) 25vw, 200px" style={{ objectFit: "cover" }} />
                         <span>{story.category}</span>
                       </div>
                       <h3>{story.title}</h3>

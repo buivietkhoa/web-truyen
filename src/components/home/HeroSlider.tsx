@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { FaBookOpen, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 
@@ -51,15 +52,16 @@ export default function HeroSlider({ stories }: HeroSliderProps) {
   };
 
   return (
-    <div
-      className="hero-slider"
-      style={{ backgroundImage: `url(${activeSlide.coverImage})` }}
-    >
-      <img
+    <div className="hero-slider">
+      <Image
+        fill
+        priority
         className="hero-slider-image"
         src={activeSlide.coverImage}
         alt=""
         aria-hidden="true"
+        sizes="(max-width: 992px) 100vw, 66vw"
+        style={{ objectFit: "cover", objectPosition: "center top" }}
       />
       <Link
         href={detailUrl}
