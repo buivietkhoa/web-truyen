@@ -111,16 +111,18 @@ export default async function HomePage() {
                 <div className="col-lg-4">
                   <h3 className="side-title"><FaStar /> Đề cử cho bạn</h3>
 
-                  {recommended.map((item) => (
-                    <Link href={`/truyen/${item.slug}`} className="recommend-card" key={item.id}>
-                      <Image src={item.coverImage} alt={item.title} width={70} height={90} />
-                      <div>
-                        <h4>{item.title}</h4>
-                        <p>{item.category} - {item.status}</p>
-                        <span>{item.views.toLocaleString("vi-VN")} lượt đọc</span>
-                      </div>
-                    </Link>
-                  ))}
+                  <div className="recommend-list">
+                    {recommended.map((item) => (
+                      <Link href={`/truyen/${item.slug}`} className="recommend-card" key={item.id}>
+                        <Image src={item.coverImage} alt={item.title} width={70} height={90} />
+                        <div>
+                          <h4>{item.title}</h4>
+                          <p>{item.category} - {item.status}</p>
+                          <span>{item.views.toLocaleString("vi-VN")} lượt đọc</span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
 
                   <Link href="/truyen" className="small-link">
                     <span>Xem thêm đề cử</span>

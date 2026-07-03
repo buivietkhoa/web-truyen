@@ -17826,3 +17826,117 @@ body {
     font-size: 12px;
   }
 }
+
+/* Recommendation list: vertical on desktop, compact horizontal rail on mobile. */
+.hero-section .recommend-list {
+  min-height: 0;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.hero-section .recommend-list .recommend-card {
+  flex: 1;
+}
+
+@media (max-width: 575.98px) {
+  .home-page .hero-section .col-lg-4 {
+    padding-top: 12px;
+  }
+
+  .home-page .side-title {
+    margin-bottom: 10px;
+    padding-left: 0;
+    font-size: 14px !important;
+  }
+
+  .home-page .side-title::before {
+    display: none;
+  }
+
+  .home-page .recommend-list {
+    width: 100%;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(238px, 82%);
+    gap: 10px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: inline mandatory;
+    scrollbar-width: none;
+    padding: 2px 2px 9px;
+  }
+
+  .home-page .recommend-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .home-page .recommend-card,
+  .home-page .hero-section .col-lg-4 .recommend-card {
+    min-height: 94px;
+    margin: 0;
+    padding: 8px;
+    grid-template-columns: 62px minmax(0, 1fr);
+    gap: 10px;
+    border: 1px solid #dce5f1;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 5px 14px rgba(15, 23, 42, 0.07);
+    scroll-snap-align: start;
+  }
+
+  .home-page .recommend-card:active {
+    border-color: #93c5fd;
+    transform: scale(0.985);
+  }
+
+  .home-page .recommend-card img {
+    width: 62px;
+    height: 78px;
+    border-radius: 7px;
+    object-fit: cover;
+    box-shadow: 0 3px 9px rgba(15, 23, 42, 0.13);
+  }
+
+  .home-page .recommend-card > div {
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .home-page .recommend-card h4 {
+    font-size: 12px !important;
+    line-height: 1.35;
+  }
+
+  .home-page .recommend-card p {
+    font-size: 10px !important;
+  }
+
+  .home-page .recommend-card span {
+    font-size: 9.5px !important;
+  }
+
+  .home-page .small-link {
+    width: fit-content;
+    min-width: 166px;
+    min-height: 36px;
+    margin: 7px 0 0 auto;
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+    box-shadow: none;
+  }
+
+  .home-page .small-link:hover {
+    border-color: #2563eb;
+    background: #2563eb;
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(37, 99, 235, 0.2);
+  }
+}
+
+@media (max-width: 360px) {
+  .home-page .recommend-list {
+    grid-auto-columns: 86%;
+  }
+}
