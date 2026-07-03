@@ -20,7 +20,14 @@ export default function ReaderToolbar({ children }: { children: ReactNode }) {
     function loadVoices() {
       const all = window.speechSynthesis.getVoices();
       const vi = all.filter((v) => v.lang.startsWith("vi"));
-      const list = vi.length > 0 ? vi : all;
+      const raw = vi.length > 0 ? vi : all;
+      // Deduplicate by voiceURI — Chrome can return duplicates
+      const seen = new Set<string>();
+      const list = raw.filter((v) => {
+        if (seen.has(v.voiceURI)) return false;
+        seen.add(v.voiceURI);
+        return true;
+      });
       setVoices(list);
       setSelectedVoiceUri((prev) => prev || (list[0]?.voiceURI ?? ""));
     }
