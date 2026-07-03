@@ -19,15 +19,17 @@ export default function ReaderToolbar({ children }: { children: ReactNode }) {
   useEffect(() => {
     function loadVoices() {
       const all = window.speechSynthesis.getVoices();
-      const vi = all.filter((v) => v.lang.startsWith("vi"));
-      const raw = vi.length > 0 ? vi : all;
-      // Deduplicate by voiceURI — Chrome can return duplicates
+      // Deduplicate by voiceURI
       const seen = new Set<string>();
-      const list = raw.filter((v) => {
+      const unique = all.filter((v) => {
         if (seen.has(v.voiceURI)) return false;
         seen.add(v.voiceURI);
         return true;
       });
+      // Vietnamese first, then the rest
+      const vi = unique.filter((v) => v.lang.startsWith("vi"));
+      const others = unique.filter((v) => !v.lang.startsWith("vi"));
+      const list = [...vi, ...others];
       setVoices(list);
       setSelectedVoiceUri((prev) => prev || (list[0]?.voiceURI ?? ""));
     }
@@ -98,21 +100,35 @@ export default function ReaderToolbar({ children }: { children: ReactNode }) {
             </div>
           </div>
 
-          {voices.length > 1 && (
-            <div className="tts-settings-row">
-              <span className="tts-settings-label">Giọng đọc</span>
+          <div className="tts-settings-row">
+            <span className="tts-settings-label">Giọng đọc</span>
+            {voices.length === 0 ? (
+              <span className="tts-no-voice">Không tìm thấy giọng đọc</span>
+            ) : (
               <select
                 className="tts-voice-select"
                 value={selectedVoiceUri}
                 onChange={(e) => setSelectedVoiceUri(e.target.value)}
               >
-                {voices.map((v) => (
-                  <option key={v.voiceURI} value={v.voiceURI}>
-                    {v.name}
-                  </option>
-                ))}
+                {voices.some((v) => v.lang.startsWith("vi")) && (
+                  <optgroup label="🇻🇳 Tiếng Việt">
+                    {voices.filter((v) => v.lang.startsWith("vi")).map((v) => (
+                      <option key={v.voiceURI} value={v.voiceURI}>{v.name}</option>
+                    ))}
+                  </optgroup>
+                )}
+                <optgroup label="Ngôn ngữ khác">
+                  {voices.filter((v) => !v.lang.startsWith("vi")).map((v) => (
+                    <option key={v.voiceURI} value={v.voiceURI}>{v.name} ({v.lang})</option>
+                  ))}
+                </optgroup>
               </select>
-            </div>
+            )}
+          </div>
+          {voices.length > 0 && !voices.some((v) => v.lang.startsWith("vi")) && (
+            <p className="tts-vi-hint">
+              Chưa có giọng tiếng Việt. Cài thêm tại: <em>Settings → Time &amp; Language → Speech → Add voices → Vietnamese</em>
+            </p>
           )}
         </div>
       )}

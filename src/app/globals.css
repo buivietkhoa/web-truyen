@@ -13947,6 +13947,24 @@ body:has(.admin-settings-page) { overflow: hidden; }
   color: var(--site-primary);
 }
 
+.tts-no-voice {
+  font-size: 12px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.tts-vi-hint {
+  font-size: 11px;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.tts-vi-hint em {
+  font-style: normal;
+  color: #64748b;
+}
+
 [data-theme="dark"] .reader-tts-settings {
   background: #1e293b;
   border-color: #334155;
