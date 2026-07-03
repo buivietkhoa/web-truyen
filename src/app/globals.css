@@ -13871,6 +13871,33 @@ body:has(.admin-settings-page) { overflow: hidden; }
   text-align: center;
 }
 
+/* TTS controls */
+.reader-tts-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.reader-tools-divider {
+  width: 1px;
+  height: 20px;
+  background: #e2e8f0;
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .reader-tools-divider {
+  background: #334155;
+}
+
+.tts-btn.play:hover  { background: #dcfce7 !important; color: #16a34a !important; }
+.tts-btn.pause:hover { background: #fef3c7 !important; color: #b45309 !important; }
+.tts-btn.stop:hover  { background: #fee2e2 !important; color: #dc2626 !important; }
+
+[data-theme="dark"] .tts-btn.play:hover  { background: #14532d !important; color: #86efac !important; }
+[data-theme="dark"] .tts-btn.pause:hover { background: #451a03 !important; color: #fcd34d !important; }
+[data-theme="dark"] .tts-btn.stop:hover  { background: #450a0a !important; color: #fca5a5 !important; }
+
 /* Dark mode reader */
 [data-theme="dark"] .reader-page {
   background: #0d1117;
