@@ -15,6 +15,7 @@ export default function ReaderToolbar({ children }: { children: ReactNode }) {
   const [selectedVoiceUri, setSelectedVoiceUri] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const resumeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     function loadVoices() {
@@ -38,6 +39,7 @@ export default function ReaderToolbar({ children }: { children: ReactNode }) {
     return () => {
       window.speechSynthesis.removeEventListener("voiceschanged", loadVoices);
       window.speechSynthesis.cancel();
+      if (resumeTimerRef.current) clearInterval(resumeTimerRef.current);
     };
   }, []);
 
@@ -60,11 +62,25 @@ export default function ReaderToolbar({ children }: { children: ReactNode }) {
     utterance.rate = speed;
     const voice = voices.find((v) => v.voiceURI === selectedVoiceUri);
     if (voice) utterance.voice = voice;
-    utterance.onend = () => setTtsState("idle");
-    utterance.onerror = () => setTtsState("idle");
+    utterance.onend = () => {
+      setTtsState("idle");
+      if (resumeTimerRef.current) clearInterval(resumeTimerRef.current);
+    };
+    utterance.onerror = () => {
+      setTtsState("idle");
+      if (resumeTimerRef.current) clearInterval(resumeTimerRef.current);
+    };
     utteranceRef.current = utterance;
     window.speechSynthesis.speak(utterance);
     setTtsState("speaking");
+
+    // Workaround: Android Chrome tự dừng TTS sau ~15s
+    if (resumeTimerRef.current) clearInterval(resumeTimerRef.current);
+    resumeTimerRef.current = setInterval(() => {
+      if (window.speechSynthesis.speaking && window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    }, 5000);
   }
 
   function handlePause() {
@@ -74,6 +90,7 @@ export default function ReaderToolbar({ children }: { children: ReactNode }) {
 
   function handleStop() {
     window.speechSynthesis.cancel();
+    if (resumeTimerRef.current) clearInterval(resumeTimerRef.current);
     setTtsState("idle");
   }
 
