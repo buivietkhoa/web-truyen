@@ -2,21 +2,34 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
-import { FaMinus, FaPause, FaPlay, FaPlus, FaStop } from "react-icons/fa";
-
-interface ReaderToolbarProps {
-  children: ReactNode;
-}
+import { FaCog, FaMinus, FaPause, FaPlay, FaPlus, FaStop } from "react-icons/fa";
 
 type TtsState = "idle" | "speaking" | "paused";
+const SPEEDS = [0.75, 1, 1.25, 1.5, 2];
 
-export default function ReaderToolbar({ children }: ReaderToolbarProps) {
+export default function ReaderToolbar({ children }: { children: ReactNode }) {
   const [fontSize, setFontSize] = useState(20);
   const [ttsState, setTtsState] = useState<TtsState>("idle");
+  const [speed, setSpeed] = useState(1);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [selectedVoiceUri, setSelectedVoiceUri] = useState("");
+  const [showSettings, setShowSettings] = useState(false);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
-    return () => { window.speechSynthesis?.cancel(); };
+    function loadVoices() {
+      const all = window.speechSynthesis.getVoices();
+      const vi = all.filter((v) => v.lang.startsWith("vi"));
+      const list = vi.length > 0 ? vi : all;
+      setVoices(list);
+      setSelectedVoiceUri((prev) => prev || (list[0]?.voiceURI ?? ""));
+    }
+    loadVoices();
+    window.speechSynthesis.addEventListener("voiceschanged", loadVoices);
+    return () => {
+      window.speechSynthesis.removeEventListener("voiceschanged", loadVoices);
+      window.speechSynthesis.cancel();
+    };
   }, []);
 
   function getChapterText() {
@@ -29,14 +42,15 @@ export default function ReaderToolbar({ children }: ReaderToolbarProps) {
       setTtsState("speaking");
       return;
     }
-
     window.speechSynthesis.cancel();
     const text = getChapterText();
     if (!text) return;
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = "vi-VN";
-    utterance.rate = 1;
+    utterance.rate = speed;
+    const voice = voices.find((v) => v.voiceURI === selectedVoiceUri);
+    if (voice) utterance.voice = voice;
     utterance.onend = () => setTtsState("idle");
     utterance.onerror = () => setTtsState("idle");
     utteranceRef.current = utterance;
@@ -59,8 +73,44 @@ export default function ReaderToolbar({ children }: ReaderToolbarProps) {
       className="reader-shell"
       style={{ "--reader-font-size": `${fontSize}px` } as CSSProperties}
     >
+      {showSettings && (
+        <div className="reader-tts-settings">
+          <div className="tts-settings-row">
+            <span className="tts-settings-label">Tốc độ</span>
+            <div className="tts-speed-group">
+              {SPEEDS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  className={`tts-speed-btn${speed === s ? " active" : ""}`}
+                  onClick={() => setSpeed(s)}
+                >
+                  {s}x
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {voices.length > 1 && (
+            <div className="tts-settings-row">
+              <span className="tts-settings-label">Giọng đọc</span>
+              <select
+                className="tts-voice-select"
+                value={selectedVoiceUri}
+                onChange={(e) => setSelectedVoiceUri(e.target.value)}
+              >
+                {voices.map((v) => (
+                  <option key={v.voiceURI} value={v.voiceURI}>
+                    {v.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="reader-floating-tools">
-        {/* TTS */}
         <div className="reader-tts-group">
           {ttsState === "idle" && (
             <button type="button" onClick={handlePlay} aria-label="Nghe đọc truyện" title="Nghe đọc truyện" className="tts-btn play">
@@ -87,11 +137,19 @@ export default function ReaderToolbar({ children }: ReaderToolbarProps) {
               </button>
             </>
           )}
+          <button
+            type="button"
+            onClick={() => setShowSettings((s) => !s)}
+            aria-label="Cài đặt giọng đọc"
+            title="Cài đặt giọng đọc"
+            className={`tts-btn settings${showSettings ? " active" : ""}`}
+          >
+            <FaCog />
+          </button>
         </div>
 
         <div className="reader-tools-divider" />
 
-        {/* Font size */}
         <button type="button" onClick={() => setFontSize((s) => Math.max(16, s - 2))} aria-label="Giảm cỡ chữ">
           <FaMinus />
         </button>
