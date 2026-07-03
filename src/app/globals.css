@@ -18181,3 +18181,160 @@ body {
     flex-basis: min(48vw, 164px);
   }
 }
+
+/* Story detail mobile: visible chapter disclosure and balanced related rail. */
+@media (max-width: 575.98px) {
+  .story-detail-page {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .story-detail-page .story-detail-frame,
+  .story-detail-page .story-hero,
+  .story-detail-page .story-main-info,
+  .story-detail-page .story-content-grid,
+  .story-detail-page .chapter-panel,
+  .story-detail-page .story-sidebar,
+  .story-detail-page .related-box {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .story-detail-page .chapter-panel {
+    overflow: hidden;
+  }
+
+  .story-detail-page .chapter-disclosure > summary.chapter-panel-header {
+    position: relative;
+    width: 100%;
+    min-height: 40px;
+    margin: 0;
+    padding: 2px 0;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .story-detail-page .chapter-disclosure > summary h2 {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    color: #0f172a;
+    font-size: 12px !important;
+    line-height: 1.3;
+    padding-right: 96px;
+  }
+
+  .story-detail-page .chapter-disclosure .chapter-summary-action {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+    flex: 0 0 auto;
+    min-height: 28px;
+    margin-left: auto;
+    padding: 5px 9px;
+    border: 1px solid #bfdbfe;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #2563eb;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 8.5px !important;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .story-detail-page .chapter-disclosure .chapter-summary-action svg {
+    width: 9px;
+    height: 9px;
+    flex: 0 0 auto;
+  }
+
+  .story-detail-page .chapter-disclosure[open] > summary.chapter-panel-header {
+    margin-bottom: 8px;
+    padding-bottom: 9px;
+    border-bottom: 1px solid #e8eef6;
+  }
+
+  .story-detail-page
+    .chapter-disclosure[open]
+    > summary
+    .chapter-summary-action {
+    transform: translateY(-50%);
+  }
+
+  .story-detail-page .chapter-disclosure[open] .chapter-list {
+    max-height: 370px;
+    padding-right: 3px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #bfdbfe transparent;
+  }
+
+  .story-detail-page .related-box {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .story-detail-page .related-carousel {
+    width: 100%;
+    min-width: 0;
+    padding-bottom: 2px;
+  }
+
+  .story-detail-page .related-carousel-track {
+    gap: 8px;
+    padding: 1px 1px 5px;
+  }
+
+  .story-detail-page .related-carousel-slide {
+    width: min(72vw, 250px);
+    max-width: calc(100vw - 64px);
+    flex: 0 0 min(72vw, 250px);
+  }
+
+  .story-detail-page .related-carousel-slide .related-item {
+    width: 100%;
+    min-width: 0;
+    min-height: 72px;
+    padding: 7px;
+    align-items: center;
+  }
+
+  .story-detail-page .related-carousel-slide .related-item > div {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .story-detail-page .related-carousel-slide .related-item h3 {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+  }
+
+  .story-detail-page .related-carousel-slide .related-item p,
+  .story-detail-page .related-carousel-slide .related-item span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 360px) {
+  .story-detail-page .related-carousel-slide {
+    width: min(76vw, 238px);
+    flex-basis: min(76vw, 238px);
+  }
+}
