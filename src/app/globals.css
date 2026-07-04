@@ -18338,3 +18338,38 @@ body {
     flex-basis: min(76vw, 238px);
   }
 }
+
+/* Small mobile readability and homepage cover-height adjustment. */
+@media (max-width: 575.98px) {
+  .home-page .recommend-carousel .recommend-card h4 {
+    font-size: 10.5px !important;
+  }
+
+  .home-page .recommend-carousel .recommend-card p {
+    font-size: 9px !important;
+  }
+
+  .home-page .recommend-carousel .recommend-card span {
+    font-size: 8.5px !important;
+  }
+
+  .home-page .story-card h3 {
+    font-size: 13.5px !important;
+  }
+
+  .home-page .story-card p,
+  .home-page .story-card strong,
+  .home-page .story-status-badge {
+    font-size: 10.5px !important;
+  }
+
+  .home-main-section .story-cover-wrap {
+    height: 195px;
+  }
+}
+
+@media (max-width: 420px) {
+  .home-main-section .story-cover-wrap {
+    height: 168px;
+  }
+}
