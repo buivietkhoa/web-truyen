@@ -4,6 +4,14 @@ import { db } from "@/lib/db";
 export async function GET(request: Request) {
   const secret = request.headers.get("x-cron-secret");
   const envSecret = process.env.CRON_SECRET;
+
+  if (!envSecret || envSecret.length < 16) {
+    return NextResponse.json(
+      { error: "Server chưa cấu hình CRON_SECRET hợp lệ." },
+      { status: 500 }
+    );
+  }
+
   const isVercelCron = request.headers.get("authorization") === `Bearer ${envSecret}`;
   const isManual = envSecret && secret === envSecret;
 
